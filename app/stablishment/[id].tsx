@@ -1,6 +1,7 @@
 // app/establishment/[id].tsx
 
 import CartIcon from '@/compoents/CartIcon';
+import ReviewsTab from '@/compoents/stablishment/ReviewTab';
 import InfoTab from '@/compoents/view/InfoTab';
 import ProductsTab from '@/compoents/view/ProductsTab';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -10,7 +11,7 @@ import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view'; // 💡 Nuevas importaciones
 import ProductCard from '../../compoents/HomeScreen/ProductCard';
 import colors from '../../constants/colors';
-import { Establishment, MOCK_ALL_ESTABLISHMENTS, MOCK_PRODUCTS } from '../../constants/mockData';
+import { Establishment, MOCK_ALL_ESTABLISHMENTS, MOCK_PRODUCTS, MOCK_REVIEWS } from '../../constants/mockData';
 import Sizes from '../../constants/Sizes';
 
 const initialLayout = { width: Dimensions.get('window').width };
@@ -25,14 +26,6 @@ const EstablishmentDetailScreen: React.FC = () => {
   // Si es un string (ej: 'e4'), lo deja como está. Si es undefined, lo convierte en string vacía.
   const id: string = Array.isArray(rawId) ? rawId[0] : rawId?.toString() || ''; 
     
-    // --- Lógica de Estado para las Pestañas ---
-  const [index, setIndex] = useState(0);
-  const [routes] = useState([
-    { key: 'products', title: 'Menú y Productos' },
-    { key: 'info', title: 'Información' },
-    { key: 'reviews', title: 'Opiniones (0)' }, // Se puede dejar inactivo por ahora
-  ]);
-
   // --- El useMemo ahora usa la variable 'id' limpia ---
   const establishment: Establishment | undefined = useMemo(() => 
     MOCK_ALL_ESTABLISHMENTS.find(e => {
@@ -48,6 +41,19 @@ const EstablishmentDetailScreen: React.FC = () => {
     MOCK_PRODUCTS.filter(p => p.establishment.id === id),
     [id]
   );
+   // 💡 OBTENER LAS OPINIONES FILTRADAS
+    const reviews = useMemo(() => 
+        MOCK_REVIEWS.filter(r => r.establishmentId === id),
+        [id]
+    );
+    // --- Lógica de Estado para las Pestañas ---
+const [index, setIndex] = useState(0);
+const [routes] = useState([
+  { key: 'products', title: 'Menú' },
+  // 💡 Actualizamos el título de Reviews con el conteo
+  { key: 'reviews', title: `Opiniones (${reviews.length})` }, 
+  { key: 'info', title: 'Información' }, 
+]);
 
   // Manejo de Error si no se encuentra el establecimiento
   if (!establishment) {
@@ -57,12 +63,13 @@ const EstablishmentDetailScreen: React.FC = () => {
       </View>
     );
   }
-   // --- Renderizado de Escenas (Pestañas) ---
-  const renderScene = SceneMap({
-    products: () => <ProductsTab products={products} />,
-    info: () => <InfoTab establishment={establishment} />,
-    reviews: () => <Text style={styles.tabContentText}>Pestaña de Opiniones en desarrollo.</Text>,
-  });
+ // --- Renderizado de Escenas (Pestañas) ---
+const renderScene = SceneMap({
+  products: () => <ProductsTab products={products} />,
+  info: () => <InfoTab establishment={establishment} />,
+  // 💡 Renderizamos el nuevo ReviewsTab
+  reviews: () => <ReviewsTab reviews={reviews} />, 
+});
 
   // --- Renderizado de la Barra de Pestañas (Custom TabBar) ---
   const renderTabBar = (props: any) => (

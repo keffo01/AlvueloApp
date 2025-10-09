@@ -12,33 +12,15 @@ import {
 } from 'react-native';
 
 import { useCart } from '@/context/CartContext';
+import { useRouter } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Colors from '../constants/colors';
 import Sizes from '../constants/Sizes';
 import { CartEstablishmentGroup } from '../models/commons.model'; // 💡 Importar el tipo de grupo
 
 
-// Datos de ejemplo para la estructura del carrito
-const MOCK_CART_DATA = [
-  { 
-    id: 's1', 
-    name: 'Supermercado Central', 
-    items: [
-      { id: 'i1', name: 'Jabón de Baño', quantity: 2, price: 1.50 },
-      { id: 'i2', name: 'Leche (1L)', quantity: 3, price: 2.00 },
-    ],
-  },
-  { 
-    id: 's2', 
-    name: 'Restaurante El Sabor', 
-    items: [
-      { id: 'i3', name: 'Plato del Día (Pollo)', quantity: 1, price: 8.50 },
-      { id: 'i4', name: 'Jugo de Naranja', quantity: 2, price: 1.75 },
-    ],
-  },
-];
-
 const CartIcon: React.FC = () => {
+  const navigation = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   // 💡 CONSUMIR DATOS DEL CONTEXTO
   // 💡 Obtenemos las funciones de modificación
@@ -52,6 +34,11 @@ const CartIcon: React.FC = () => {
     removeItemFromCart // 💡 Esta es la nueva función de remoción
   } = useCart();
 
+  const handleCheckout = () => {
+    // 💡 Asegúrate de que apunte a la ruta 'checkout'
+    // Expo Router asume 'checkout/index' si navegas a 'checkout'
+    navigation.navigate('checkout' as never); 
+  };
    // Renderiza una sección de establecimiento (Supermercado, Restaurante, etc.)
   const renderEstablishmentSection = (group: CartEstablishmentGroup) => (
     <View key={group.id} style={styles.section}>
@@ -106,7 +93,6 @@ const CartIcon: React.FC = () => {
   );
 
  return (
-    // ... (El resto del código JSX para el icono del header y el badge) ...
     <>
       <TouchableOpacity 
         onPress={() => setModalVisible(true)} 
@@ -169,7 +155,7 @@ const CartIcon: React.FC = () => {
                   <Text style={styles.totalValue}>${finalTotal.toFixed(2)}</Text>
                 </View>
                 
-                <TouchableOpacity style={styles.checkoutButton}>
+                <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
                   <Text style={styles.checkoutButtonText}>Ir a Pagar (${finalTotal.toFixed(2)})</Text>
                 </TouchableOpacity>
               </View>

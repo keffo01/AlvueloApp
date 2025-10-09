@@ -1,7 +1,6 @@
 // navigation/AppNavigator.js
 
 import { createDrawerNavigator } from '@react-navigation/drawer'; // 💡 Nuevo import
-import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
@@ -60,7 +59,6 @@ const MainAppDrawer = () => (
 
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash">
         {/* Splash Screen (sin header) */}
         <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
@@ -69,7 +67,6 @@ const AppNavigator = () => {
         {/* Aquí usamos el Drawer como la siguiente pantalla después del Splash */}
         <Stack.Screen name="AppMain" component={MainAppDrawer} options={{ headerShown: false }} />
       </Stack.Navigator>
-    </NavigationContainer>
   );
 };
 

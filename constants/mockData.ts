@@ -36,29 +36,22 @@ export const MOCK_OPTIONS: QuickOption[] = [
 // Lista de Establecimientos más grande y con categorías
 export const MOCK_ALL_ESTABLISHMENTS: Establishment[] = [
   // Restaurantes
-  { id: 'e1', name: 'El Gourmet Central', category: 'Restaurantes', rating: 4.9, likes: 2500, imageUri: 'https://picsum.photos/id/10/400/200', deliveryCost: 3.50,},
-  { id: 'e2', name: 'Sushi Express', category: 'Restaurantes', rating: 4.7, likes: 1800, imageUri: 'https://picsum.photos/id/1041/400/200', deliveryCost: 3.50, },
-  { id: 'e3', name: 'Pizzería Clásica', category: 'Restaurantes', rating: 4.5, likes: 1200, imageUri: 'https://picsum.photos/id/11/400/200', deliveryCost: 3.50,},
+  { id: 'e1', name: 'El Gourmet Central', category: 'Restaurantes', rating: 4.9, likes: 2500, imageUri: 'https://picsum.photos/id/10/400/200', deliveryCost: 1,},
+  { id: 'e2', name: 'Sushi Express', category: 'Restaurantes', rating: 4.7, likes: 1800, imageUri: 'https://picsum.photos/id/1041/400/200', deliveryCost: 1, },
+  { id: 'e3', name: 'Pizzería Clásica', category: 'Restaurantes', rating: 4.5, likes: 1200, imageUri: 'https://picsum.photos/id/11/400/200', deliveryCost: 1,},
   
   // Supermercados
-  { id: 'e4', name: 'Súper Ahorro', category: 'Supermercado', rating: 4.2, likes: 900, imageUri: 'https://picsum.photos/id/1060/400/200', deliveryCost: 3.50, },
+  { id: 'e4', name: 'Súper Ahorro', category: 'Supermercado', rating: 4.2, likes: 900, imageUri: 'https://picsum.photos/id/1060/400/200', deliveryCost: 1, },
   
   // Farmacias
-  { id: 'e5', name: 'Farmacia Rápida', category: 'Farmacias', rating: 4.6, likes: 700, imageUri: 'https://picsum.photos/id/145/400/200',deliveryCost: 3.50, },
+  { id: 'e5', name: 'Farmacia Rápida', category: 'Farmacias', rating: 4.6, likes: 700, imageUri: 'https://picsum.photos/id/145/400/200',deliveryCost: 1, },
   
   // Panaderías
-  { id: 'e6', name: 'Pan de la Abuela', category: 'Panaderías', rating: 4.8, likes: 500, imageUri: 'https://picsum.photos/id/190/400/200',deliveryCost: 3.50, },
+  { id: 'e6', name: 'Pan de la Abuela', category: 'Panaderías', rating: 4.8, likes: 500, imageUri: 'https://picsum.photos/id/190/400/200',deliveryCost: 1, },
 ];
 
 // MOCK_ESTABLISHMENTS de la Sección 4 ahora puede ser un filtro de MOCK_ALL_ESTABLISHMENTS
 export const MOCK_ESTABLISHMENTS = MOCK_ALL_ESTABLISHMENTS.filter(e => e.likes > 1000);
-
-// Asumiremos que todos los productos son de un solo establecimiento por ahora:
-const MOCK_ESTABLISHMENT_REF = {
-  id: 'rest_fast_food',
-  name: 'Burger Joint Central',
-  deliveryCost: 2.50, // Costo de envío de este establecimiento
-};
 
 // Definición de un Producto para la venta
 export interface Products {
@@ -127,6 +120,45 @@ export const MOCK_PRODUCTS: Product[] = [
     category: 'Combo'
   },
   // ... (Añade más productos para otros establecimientos si deseas probar el filtro)
+];
+// constants/mockData.ts (Añadir nuevos tipos e interfaces)
+
+export interface Review {
+  id: string;
+  establishmentId: string;
+  userName: string;
+  rating: number; // Valor de 1 a 5
+  comment: string;
+  date: string; // Formato simple: 'DD/MM/YYYY'
+}
+
+// --- Mock Data para Opiniones ---
+export const MOCK_REVIEWS: Review[] = [
+  {
+    id: 'r1',
+    establishmentId: 'e1', // El Gourmet Central
+    userName: 'Laura M.',
+    rating: 5,
+    comment: '¡La mejor hamburguesa que he probado! El servicio fue rápido y la comida llegó caliente.',
+    date: '15/10/2025',
+  },
+  {
+    id: 'r2',
+    establishmentId: 'e1',
+    userName: 'Carlos S.',
+    rating: 4,
+    comment: 'Muy buen sabor. Solo tardaron un poco más de lo esperado en la entrega.',
+    date: '14/10/2025',
+  },
+  {
+    id: 'r3',
+    establishmentId: 'e2', // El de la otra categoría
+    userName: 'Sofía R.',
+    rating: 5,
+    comment: 'Productos frescos y excelente atención. ¡Volveré a pedir!',
+    date: '10/10/2025',
+  },
+  // Añade más opiniones para otros establecimientos si tienes más mocks.
 ];
 
 export { Establishment };

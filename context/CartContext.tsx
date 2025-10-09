@@ -18,6 +18,7 @@ const DEFAULT_CART_CONTEXT: CartContextType = {
   groupedItems: [],
   addItemToCart: () => {},
   removeItemFromCart: () => {},
+  clearCart: () => {}
 };
 
 // --- Creación del Contexto ---
@@ -106,6 +107,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
   };
 
+  const clearCart = () => {
+    setCart([]);
+  };
+
   // --- Lógica para Eliminar Items ---
   const removeItemFromCart = (productId: string) => {
     setCart(prevCart => {
@@ -136,6 +141,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       cart,
       addItemToCart,
       removeItemFromCart,
+      clearCart,
     };
   }, [cart]);
 

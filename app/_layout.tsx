@@ -3,6 +3,7 @@
 import { CartProvider } from '@/context/CartContext';
 import { SplashScreen, Stack } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import SplashScreenAlvuelo from './screens/SplashScreen';
 
 
 // Expo Router ya maneja la Splash Screen por defecto, pero si quieres hacer 
@@ -34,7 +35,7 @@ const RootLayout = () => {
   
   if (!appIsReady) {
     // Mientras appIsReady es false, se muestra la Splash Screen de Expo
-    return null; 
+    return <SplashScreenAlvuelo />; 
   }
 
   return (

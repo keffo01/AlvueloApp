@@ -1,25 +1,13 @@
 // screens/SplashScreen.js
 
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-const SplashScreen = () => {
+const SplashScreenAlvuelo = () => {
   const navigation = useRouter(); // Hook para obtener el objeto de navegación
 
-  useEffect(() => {
-    // Simulamos una tarea de carga (por ejemplo, cargar datos, comprobar autenticación)
-    const loadResourcesAndNavigate = async () => {
-      // Aquí podrías hacer llamadas a API, cargar preferencias de usuario, etc.
-      // Por ahora, solo esperamos 2 segundos.
-      await new Promise(resolve => setTimeout(resolve, 2000)); 
-      
-      // Una vez que las "tareas de carga" han terminado, navegamos a HomeScreen
-      navigation.replace('/screens/HomeScreen'); // 'replace' asegura que el usuario no pueda volver a la Splash
-    };
-
-    loadResourcesAndNavigate();
-  }, []); // El array vacío asegura que se ejecute solo una vez al montar
+ 
 
   return (
     <View style={styles.container}>
@@ -58,4 +46,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SplashScreen;
+export default SplashScreenAlvuelo;
