@@ -17,7 +17,7 @@ const RootLayout = () => {
     async function prepare() {
       try {
         // 💡 Simula la carga de recursos de 2 segundos (como en el SplashScreen anterior)
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 4000));
         
         // Aquí iría tu lógica real de autenticación (ej: checkear token de usuario)
         // const isAuthenticated = checkIfUserLoggedIn(); 

@@ -76,7 +76,7 @@ export const MOCK_PRODUCTS: Product[] = [
     establishment: {
      id: 'e1',
     name: 'El Gourmet Central',
-    deliveryCost: 3.50,
+    deliveryCost: 1,
     },
     category: 'Combo'
   },
@@ -89,7 +89,7 @@ export const MOCK_PRODUCTS: Product[] = [
     establishment: {
       id: 'e1',
       name: 'El Gourmet Central',
-      deliveryCost: 3.50,
+      deliveryCost: 1,
     },
     category: 'Combo'
   },
@@ -102,7 +102,7 @@ export const MOCK_PRODUCTS: Product[] = [
     establishment: {
       id: 'e1',
       name: 'El Gourmet Central',
-      deliveryCost: 3.50,
+      deliveryCost: 1,
     },
     category: 'Bebida'
   },
@@ -115,7 +115,7 @@ export const MOCK_PRODUCTS: Product[] = [
     establishment: {
       id: 'e2',
       name: 'Sushi Express',
-      deliveryCost: 3.50,
+      deliveryCost: 1,
     },
     category: 'Combo'
   },

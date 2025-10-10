@@ -100,5 +100,7 @@ export interface CartContextType extends CartTotals {
   addItemToCart: (item: Omit<CartItem, 'quantity'>) => void;
   removeItemFromCart: (productId: string) => void;
   clearCart: () => void;
+  incrementQuantity: (productId: string) => void;
+  decrementQuantity: (productId: string) => void;
   // Puedes añadir funciones para incrementar, decrementar, y vaciar.
 }

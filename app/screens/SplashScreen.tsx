@@ -7,7 +7,6 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 const SplashScreenAlvuelo = () => {
   const navigation = useRouter(); // Hook para obtener el objeto de navegación
 
- 
 
   return (
     <View style={styles.container}>

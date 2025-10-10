@@ -18,7 +18,9 @@ const DEFAULT_CART_CONTEXT: CartContextType = {
   groupedItems: [],
   addItemToCart: () => {},
   removeItemFromCart: () => {},
-  clearCart: () => {}
+  clearCart: () => {},
+  incrementQuantity: () => {},
+  decrementQuantity: () => {}
 };
 
 // --- Creación del Contexto ---
@@ -30,6 +32,8 @@ export const useCart = () => useContext(CartContext);
 // --- Componente Proveedor ---
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [establishmentId, setEstablishmentId] = useState<string | null>(null);
+  const [deliveryCost, setDeliveryCost] = useState(0);
 
   // Función de ayuda para calcular los totales y agrupar items
   const calculateCartTotals = (currentCart: CartItem[]): CartTotals => {
@@ -106,7 +110,53 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         });
   };
+// 💡 1. FUNCIÓN PARA INCREMENTAR CANTIDAD
+  const incrementQuantity = (productId: string) => {
+    setCart(prevCart => {
+      const existingItemIndex = prevCart.findIndex(
+        item => item.productId === productId
+      );
 
+      if (existingItemIndex > -1) {
+        const newCart = [...prevCart];
+        // Simplemente incrementamos la cantidad
+        newCart[existingItemIndex].quantity += 1; 
+        return newCart;
+      }
+      return prevCart; // Si no lo encuentra, devolvemos el carrito sin cambios
+    });
+  };
+
+  // 💡 2. FUNCIÓN PARA DECREMENTAR CANTIDAD
+  const decrementQuantity = (productId: string) => {
+    setCart(prevCart => {
+      const existingItemIndex = prevCart.findIndex(
+        item => item.productId === productId
+      );
+
+      if (existingItemIndex > -1) {
+        const newCart = [...prevCart];
+        const currentQuantity = newCart[existingItemIndex].quantity;
+
+        if (currentQuantity > 1) {
+          // Si la cantidad es mayor a 1, solo decrementamos
+          newCart[existingItemIndex].quantity -= 1;
+          return newCart;
+        } else {
+          // Si la cantidad es 1, lo eliminamos del carrito (cantidad llega a 0)
+          const updatedCart = newCart.filter(item => item.productId !== productId);
+          
+          // Si el carrito queda vacío, reseteamos los costos del establecimiento
+          if (updatedCart.length === 0) {
+            setEstablishmentId(null);
+            setDeliveryCost(0);
+          }
+          return updatedCart;
+        }
+      }
+      return prevCart;
+    });
+  };
   const clearCart = () => {
     setCart([]);
   };
@@ -142,6 +192,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       addItemToCart,
       removeItemFromCart,
       clearCart,
+      incrementQuantity,
+      decrementQuantity
     };
   }, [cart]);
 

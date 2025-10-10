@@ -42,13 +42,13 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, interval = 
 
   // Función para renderizar un producto
   const renderProductItem = ({ item }: { item: Product }) => (
-    <ProductCard product={item} />
+    <ProductCard product={item} establishmentId={''} deliveryCost={0} />
   );
 
   return (
     <View style={styles.container}>
       <FlatList
-        ref={flatListRef}
+        //ref={flatListRef} // 💡 para darle scroll horizontal a productCard
         data={products}
         renderItem={renderProductItem}
         keyExtractor={(item) => item.productId}

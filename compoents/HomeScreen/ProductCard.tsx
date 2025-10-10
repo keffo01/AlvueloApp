@@ -1,36 +1,32 @@
 import Sizes from '@/constants/Sizes';
 import colors from '@/constants/colors';
-import { useCart } from '@/context/CartContext';
 import { Product } from '@/models/commons.model';
-import Ionicons from '@expo/vector-icons/Ionicons'; // Iconos para el botón
-import React from 'react';
-import { Alert, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ImageBackground, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProductDetailModal from '../ProductDetailModal';
 
  // 💡 Importar el hook del carrito
 
 interface ProductCardProps {
   product: Product;
+  // 💡 Necesitamos estos datos para pasarlos al carrito desde el modal
+  establishmentId: string; 
+  deliveryCost: number; 
 }
+const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, deliveryCost }) => {
+ const [isModalVisible, setIsModalVisible] = useState(false);
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addItemToCart } = useCart(); // 💡 Obtener la función para añadir
-
-  // Prepara el objeto para añadir al carrito (omite 'quantity')
-  const itemToAdd = {
-    productId: product.productId,
-    name: product.name,
-    price: product.price,
-    establishment: product.establishment,
+  const handleOpenModal = () => {
+    setIsModalVisible(true);
   };
-
-  const handleAddToCart = () => {
-    addItemToCart(itemToAdd);
-    // 💡 Retroalimentación al usuario
-    Alert.alert('¡Añadido!', `${product.name} ha sido agregado al carrito.`);
+  
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
   };
 
   return (
-    <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9}>
+    <>
+    <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9} onPress={handleOpenModal}>
       <ImageBackground 
         source={{ uri: product.imageUri }} 
         style={styles.imageBackground}
@@ -48,16 +44,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <Text style={styles.priceLabel}>Desde:</Text>
               <Text style={styles.price}>${product.price.toFixed(2)}</Text>
             </View>
-
-            {/* 💡 Botón de Añadir */}
-            <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
-                <Ionicons name="add" size={24} color={colors.background} />
-            </TouchableOpacity>
           </View>
 
         </View>
       </ImageBackground>
     </TouchableOpacity>
+     {/* 💡 Modal de Detalle */}
+      <Modal
+        visible={isModalVisible}
+        onRequestClose={handleCloseModal}
+        animationType="slide"
+        presentationStyle="pageSheet" // Estilo iOS de modal (opcional)
+      >
+        <ProductDetailModal 
+          product={product} 
+          onClose={handleCloseModal} 
+          deliveryCost={deliveryCost}
+          establishmentId={establishmentId}
+        />
+      </Modal>
+    </>
   );
 };
 

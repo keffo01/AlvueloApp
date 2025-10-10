@@ -34,7 +34,13 @@ const HomeScreen = () => {
       <SectionTitle title="Productos Destacados" />
       <FlatList
         data={MOCK_PRODUCTS}
-        renderItem={({ item }) => <ProductCard product={item} />}
+        renderItem={({ item }) => (
+          <ProductCard
+            product={item}
+            establishmentId={item.establishment.id}
+            deliveryCost={item.establishment.deliveryCost}
+          />
+        )}
         keyExtractor={(item) => item.productId}
         horizontal
         showsHorizontalScrollIndicator={false}
