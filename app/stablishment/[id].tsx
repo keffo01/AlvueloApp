@@ -9,7 +9,6 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view'; // 💡 Nuevas importaciones
-import ProductCard from '../../compoents/HomeScreen/ProductCard';
 import colors from '../../constants/colors';
 import { Establishment, MOCK_ALL_ESTABLISHMENTS, MOCK_PRODUCTS, MOCK_REVIEWS } from '../../constants/mockData';
 import Sizes from '../../constants/Sizes';
@@ -68,7 +67,7 @@ const renderScene = SceneMap({
   products: () => <ProductsTab products={products} />,
   info: () => <InfoTab establishment={establishment} />,
   // 💡 Renderizamos el nuevo ReviewsTab
-  reviews: () => <ReviewsTab reviews={reviews} />, 
+  reviews: () => <ReviewsTab reviews={reviews} establishmentId={id} />, 
 });
 
   // --- Renderizado de la Barra de Pestañas (Custom TabBar) ---
@@ -81,11 +80,6 @@ const renderScene = SceneMap({
       activeColor={colors.primary}
       inactiveColor={colors.lightText}
     />
-  );
-
-  // --- Renderizado de un Producto ---
-  const renderProduct = ({ item }: { item: typeof MOCK_PRODUCTS[0] }) => (
-    <ProductCard product={item} />
   );
 
   return (

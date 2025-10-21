@@ -13,7 +13,7 @@ interface ProductsTabProps {
 
 const ProductsTab: React.FC<ProductsTabProps> = ({ products }) => {
   const renderProduct = ({ item }: { item: Product }) => (
-    <CardProduct product={item} />
+    <CardProduct product={item} establishmentId={item.establishment.id} deliveryCost={item.establishment.deliveryCost} />
   );
 
   return (

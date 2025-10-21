@@ -4,26 +4,38 @@ import colors from '@/constants/colors';
 import Sizes from '@/constants/Sizes';
 import { useCart } from '@/context/CartContext';
 import { Product } from '@/models/commons.model';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProductDetailModal from '../ProductDetailModal';
  // 💡 Usar el Contexto
 
 interface ProductCardProps {
   product: Product;
+  // 💡 Necesitamos estos datos para pasarlos al carrito desde el modal
+  establishmentId: string; 
+  deliveryCost: number; 
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, deliveryCost }) => {
   const { addItemToCart } = useCart();
+   const [isModalVisible, setIsModalVisible] = useState(false);
+  
 
-  // Función para añadir el producto al carrito
-  const handleAddToCart = () => {
-    // La función addItemToCart toma el producto (sin la cantidad)
-    addItemToCart(product); 
+ const handleOpenModal = () => {
+    setIsModalVisible(true);
+  };
+  
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
   };
 
   return (
-    <View style={styles.card}>
+    <>
+    <TouchableOpacity 
+          style={styles.card} 
+          onPress={handleOpenModal}
+          activeOpacity={0.8}
+        >
       <View style={styles.infoContainer}>
         <Text style={styles.name} numberOfLines={1}>{product.name}</Text>
         <Text style={styles.description} numberOfLines={2}>{product.description}</Text>
@@ -37,17 +49,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           style={styles.image} 
           resizeMode="cover"
         />
-
-        {/* Botón de Añadir al Carrito */}
-        <TouchableOpacity 
-          style={styles.addButton} 
-          onPress={handleAddToCart}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={24} color={'#ffffff'} />
-        </TouchableOpacity>
+       
       </View>
-    </View>
+   </TouchableOpacity>
+       {/* 💡 Modal de Detalle */}
+      <Modal
+        visible={isModalVisible}
+        onRequestClose={handleCloseModal}
+        animationType="slide"
+        presentationStyle="pageSheet" // Estilo iOS de modal (opcional)
+      >
+        <ProductDetailModal 
+          product={product} 
+          onClose={handleCloseModal} 
+          deliveryCost={deliveryCost}
+          establishmentId={establishmentId}
+        />
+      </Modal>
+   </>
   );
 };
 

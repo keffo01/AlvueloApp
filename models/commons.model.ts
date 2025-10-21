@@ -45,6 +45,9 @@ export interface Establishment {
   rating: number; // Por ejemplo, un rating de 1 a 5
   likes: number; // El contador para el ranking de prestigio
   imageUri: string;
+  description?: string; // Descripción opcional
+  tags?: string[]; // Etiquetas para búsqueda y filtrado
+  
   
 }
 

@@ -10,6 +10,7 @@ import { MOCK_BANNERS, MOCK_ESTABLISHMENTS, MOCK_OPTIONS, MOCK_PRODUCTS } from '
 
 // Importar los componentes de sección
 import ProductCarousel from '@/compoents/ProductCarousel';
+import HomeSearchInput from '@/compoents/search/HomeSearchInput';
 import BannerSlider from '../../compoents/HomeScreen/BannerSlider';
 import EstablishmentCard from '../../compoents/HomeScreen/EstablishmentCard';
 import QuickOptions from '../../compoents/HomeScreen/QuickOption';
@@ -25,6 +26,9 @@ const HomeScreen = () => {
     <ScrollView style={styles.container}>
       {/* SECCIÓN 1: Banner Slider */}
       <BannerSlider banners={MOCK_BANNERS} />
+
+      {/* 💡 Sección 2: Barra de Búsqueda (NUEVA) */}
+            <HomeSearchInput />
 
       {/* SECCIÓN 2: Opciones Rápidas */}
       <SectionTitle title="Explora Categorías" />

@@ -36,18 +36,18 @@ export const MOCK_OPTIONS: QuickOption[] = [
 // Lista de Establecimientos más grande y con categorías
 export const MOCK_ALL_ESTABLISHMENTS: Establishment[] = [
   // Restaurantes
-  { id: 'e1', name: 'El Gourmet Central', category: 'Restaurantes', rating: 4.9, likes: 2500, imageUri: 'https://picsum.photos/id/10/400/200', deliveryCost: 1,},
-  { id: 'e2', name: 'Sushi Express', category: 'Restaurantes', rating: 4.7, likes: 1800, imageUri: 'https://picsum.photos/id/1041/400/200', deliveryCost: 1, },
-  { id: 'e3', name: 'Pizzería Clásica', category: 'Restaurantes', rating: 4.5, likes: 1200, imageUri: 'https://picsum.photos/id/11/400/200', deliveryCost: 1,},
+  { id: 'e1', name: 'El Gourmet Central', category: 'Restaurantes', rating: 4.9, likes: 2500, imageUri: 'https://picsum.photos/id/10/400/200', deliveryCost: 1, description: 'Deliciosa comida gourmet para todos los gustos.', tags: ['hamburguesas', 'comida rápida', 'gourmet'] },
+  { id: 'e2', name: 'Sushi Express', category: 'Restaurantes', rating: 4.7, likes: 1800, imageUri: 'https://picsum.photos/id/1041/400/200', deliveryCost: 1, description: 'Sushi fresco y rápido para llevar.', tags: ['sushi', 'japonés', 'comida rápida'] },
+  { id: 'e3', name: 'Pizzería Clásica', category: 'Restaurantes', rating: 4.5, likes: 1200, imageUri: 'https://picsum.photos/id/11/400/200', deliveryCost: 1, description: 'Las mejores pizzas al estilo tradicional italiano.', tags: ['pizza', 'italiano', 'comida rápida'] },
   
   // Supermercados
-  { id: 'e4', name: 'Súper Ahorro', category: 'Supermercado', rating: 4.2, likes: 900, imageUri: 'https://picsum.photos/id/1060/400/200', deliveryCost: 1, },
+  { id: 'e4', name: 'Súper Ahorro', category: 'Supermercado', rating: 4.2, likes: 900, imageUri: 'https://picsum.photos/id/1060/400/200', deliveryCost: 1, description: 'Todo lo que necesitas al mejor precio.', tags: ['abarrotes', 'hogar', 'ofertas'] },
   
   // Farmacias
-  { id: 'e5', name: 'Farmacia Rápida', category: 'Farmacias', rating: 4.6, likes: 700, imageUri: 'https://picsum.photos/id/145/400/200',deliveryCost: 1, },
+  { id: 'e5', name: 'Farmacia Rápida', category: 'Farmacias', rating: 4.6, likes: 700, imageUri: 'https://picsum.photos/id/145/400/200',deliveryCost: 1, description: 'Medicamentos y productos de salud al alcance de tu mano.', tags: ['medicamentos', 'salud', 'bienestar'] },
   
   // Panaderías
-  { id: 'e6', name: 'Pan de la Abuela', category: 'Panaderías', rating: 4.8, likes: 500, imageUri: 'https://picsum.photos/id/190/400/200',deliveryCost: 1, },
+  { id: 'e6', name: 'Pan de la Abuela', category: 'Panaderías', rating: 4.8, likes: 500, imageUri: 'https://picsum.photos/id/190/400/200',deliveryCost: 1, description: 'Panadería artesanal con recetas tradicionales.', tags: ['pan', 'dulces', 'artesanal'] },
 ];
 
 // MOCK_ESTABLISHMENTS de la Sección 4 ahora puede ser un filtro de MOCK_ALL_ESTABLISHMENTS
