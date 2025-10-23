@@ -1,5 +1,5 @@
 // constants/mockData.ts
-import { Banner, Establishment, Product, QuickOption } from '../models/commons.model';
+import { Banner, Establishment, Product, QuickOption, Review } from '../models/commons.model';
 
 export const MOCK_BANNERS: Banner[] = [
   {
@@ -26,8 +26,8 @@ export const MOCK_BANNERS: Banner[] = [
 export const MOCK_OPTIONS: QuickOption[] = [
   { id: 'o1', name: 'Supermercado', iconName: 'basket', targetScreen: 'Supermarket' },
   { id: 'o2', name: 'Restaurantes', iconName: 'restaurant', targetScreen: 'Restaurants' },
-  { id: 'o3', name: 'Farmacias', iconName: 'bandage', targetScreen: 'Pharmacies' },
-  { id: 'o4', name: 'Panaderías', iconName: 'storefront', targetScreen: 'Bakeries' },
+//  { id: 'o3', name: 'Farmacias', iconName: 'bandage', targetScreen: 'Pharmacies' },
+ // { id: 'o4', name: 'Panaderías', iconName: 'storefront', targetScreen: 'Bakeries' },
   { id: 'o5', name: 'Mandaditos', iconName: 'flash', targetScreen: 'Delivery' },
 ];
 
@@ -36,35 +36,85 @@ export const MOCK_OPTIONS: QuickOption[] = [
 // Lista de Establecimientos más grande y con categorías
 export const MOCK_ALL_ESTABLISHMENTS: Establishment[] = [
   // Restaurantes
-  { id: 'e1', name: 'El Gourmet Central', category: 'Restaurantes', rating: 4.9, likes: 2500, imageUri: 'https://picsum.photos/id/10/400/200', deliveryCost: 1, description: 'Deliciosa comida gourmet para todos los gustos.', tags: ['hamburguesas', 'comida rápida', 'gourmet'] },
-  { id: 'e2', name: 'Sushi Express', category: 'Restaurantes', rating: 4.7, likes: 1800, imageUri: 'https://picsum.photos/id/1041/400/200', deliveryCost: 1, description: 'Sushi fresco y rápido para llevar.', tags: ['sushi', 'japonés', 'comida rápida'] },
-  { id: 'e3', name: 'Pizzería Clásica', category: 'Restaurantes', rating: 4.5, likes: 1200, imageUri: 'https://picsum.photos/id/11/400/200', deliveryCost: 1, description: 'Las mejores pizzas al estilo tradicional italiano.', tags: ['pizza', 'italiano', 'comida rápida'] },
+  { id: 'e1', 
+    name: 'Comedor Central', 
+    category: 'Restaurantes', 
+    rating: 4.9, 
+    likes: 2500, 
+    imageUri: 'https://i.ibb.co/5gjFy8Ld/CCA-morado.png', 
+    deliveryCost: 1, 
+    description: 'Deliciosa comida gourmet para todos los gustos.', 
+    tags: ['platos fuertes', 'pollo encebollado', 'comedor'] },
+
+  { id: 'e2', 
+    name: 'El Chef', 
+    category: 'Restaurantes', 
+    rating: 4.7, 
+    likes: 1800, 
+    imageUri: 'https://i.ibb.co/7rQrLYj/222168979-126624602959824-2519003820174467078-n.jpg', 
+    deliveryCost: 1, 
+    description: 'Comida mexicana rápido para llevar.', 
+    tags: ['tacos', 'mexicana', 'comida rápida'] },
+
+  { id: 'e3', 
+    name: 'Donys Pizza', 
+    category: 'Restaurantes', 
+    rating: 4.5, 
+    likes: 1200, 
+    imageUri: 'https://i.ibb.co/jPwhYy7m/395257665-352252637502822-5592117756806814047-n.jpg', 
+    deliveryCost: 1, 
+    description: 'Las mejores pizzas al estilo tradicional italiano.', 
+    tags: ['pizza', 'italiano', 'comida rápida'] },
   
   // Supermercados
-  { id: 'e4', name: 'Súper Ahorro', category: 'Supermercado', rating: 4.2, likes: 900, imageUri: 'https://picsum.photos/id/1060/400/200', deliveryCost: 1, description: 'Todo lo que necesitas al mejor precio.', tags: ['abarrotes', 'hogar', 'ofertas'] },
+  { id: 'e4', 
+    name: 'Súper Ahorro', 
+    category: 'Supermercado', 
+    rating: 4.2, 
+    likes: 900, 
+    imageUri: 'https://picsum.photos/id/1060/400/200', 
+    deliveryCost: 1, 
+    description: 'Todo lo que necesitas al mejor precio.', 
+    tags: ['abarrotes', 'hogar', 'ofertas'] },
   
   // Farmacias
-  { id: 'e5', name: 'Farmacia Rápida', category: 'Farmacias', rating: 4.6, likes: 700, imageUri: 'https://picsum.photos/id/145/400/200',deliveryCost: 1, description: 'Medicamentos y productos de salud al alcance de tu mano.', tags: ['medicamentos', 'salud', 'bienestar'] },
+  { id: 'e5', 
+    name: 'Farmacia Rápida', 
+    category: 'Farmacias', 
+    rating: 4.6, 
+    likes: 700, 
+    imageUri: 'https://picsum.photos/id/145/400/200',
+    deliveryCost: 1, 
+    description: 'Medicamentos y productos de salud al alcance de tu mano.', 
+    tags: ['medicamentos', 'salud', 'bienestar'] },
   
   // Panaderías
-  { id: 'e6', name: 'Pan de la Abuela', category: 'Panaderías', rating: 4.8, likes: 500, imageUri: 'https://picsum.photos/id/190/400/200',deliveryCost: 1, description: 'Panadería artesanal con recetas tradicionales.', tags: ['pan', 'dulces', 'artesanal'] },
+  { id: 'e6', 
+    name: 'Pan de la Abuela', 
+    category: 'Panaderías', 
+    rating: 4.8, 
+    likes: 500, 
+    imageUri: 'https://picsum.photos/id/190/400/200',
+    deliveryCost: 1, 
+    description: 'Panadería artesanal con recetas tradicionales.', 
+    tags: ['pan', 'dulces', 'artesanal'] },
+     // Pastelerías
+  { id: 'e7', 
+    name: 'Coulant', 
+    category: 'Pastelerías', 
+    rating: 4.8, 
+    likes: 1000, 
+    imageUri: 'https://i.ibb.co/vCK51Rys/476484471-122102635292752952-8850275169208217337-n.jpg',
+    deliveryCost: 1, 
+    description: 'Panadería artesanal con recetas tradicionales.', 
+    tags: ['pasteles', 'postres', 'artesanal'] },
+    
 ];
 
 // MOCK_ESTABLISHMENTS de la Sección 4 ahora puede ser un filtro de MOCK_ALL_ESTABLISHMENTS
-export const MOCK_ESTABLISHMENTS = MOCK_ALL_ESTABLISHMENTS.filter(e => e.likes > 1000);
+export const MOCK_ESTABLISHMENTS = MOCK_ALL_ESTABLISHMENTS.filter(e => e.likes > 999);
 
-// Definición de un Producto para la venta
-export interface Products {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  imageUri: string;
-  // Usado para saber a qué establecimiento pertenece
-  establishmentId: string; 
-  establishmentName: string; 
-  establishmentDeliveryCost: number; // Costo de envío del local
-}
+
 // --- Mock Data para Productos ---
 export const MOCK_PRODUCTS: Product[] = [
   {
@@ -74,8 +124,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 12.99,
     imageUri: 'https://picsum.photos/id/111/200/200',
     establishment: {
-     id: 'e1',
-    name: 'El Gourmet Central',
+     id: 'e2',
+    name: 'El Chef',
     deliveryCost: 1,
     },
     category: 'Combo'
@@ -87,8 +137,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 3.50,
     imageUri: 'https://picsum.photos/id/112/200/200',
     establishment: {
-      id: 'e1',
-      name: 'El Gourmet Central',
+      id: 'e2',
+      name: 'El Chef',
       deliveryCost: 1,
     },
     category: 'Combo'
@@ -108,29 +158,58 @@ export const MOCK_PRODUCTS: Product[] = [
   },
   {
     productId: 'p4',
-    name: 'combo de prueba',
-    description: ' cortadas a mano con sal marina y pimentón.',
+    name: 'Pollo Encebollado',
+    description: 'Jugoso pollo marinado con cebollas caramelizadas y especias.',
     price: 3.50,
     imageUri: 'https://picsum.photos/id/112/200/200',
     establishment: {
-      id: 'e2',
-      name: 'Sushi Express',
+      id: 'e1',
+      name: 'Comedor Central',
+      deliveryCost: 1,
+    },
+    category: 'Combo',
+     options : {
+      Complemento1 : ['Arroz', 'Papas Fritas', 'Casamiento'],
+      Complemento2 : ['Ensalada Fresca', 'Ensalada Blanca', 'Ensalada de coditos'],
+      extras : ['tortillas de maiz', 'porcion de arroz','porcion de casamiento' ]
+    }
+  },
+  {
+    productId: 'p5',
+    name: 'Beso de Angel',
+    description: 'Delicioso postre de merengue relleno de crema pastelera y cubierto de azúcar glas.',
+    price: 3.50,
+    imageUri: 'https://picsum.photos/id/114/200/200',
+    establishment: {
+      id: 'e7',
+      name: 'Coulant',
       deliveryCost: 1,
     },
     category: 'Combo'
+  },
+  {
+    productId: 'p6',
+    name: 'Pechuga a la Plancha',
+    description: 'Filete de pechuga de pollo a la plancha con especias y hierbas finas.',
+    price: 3.50,
+    imageUri: 'https://picsum.photos/id/112/200/200',
+    establishment: {
+      id: 'e1',
+      name: 'Comedor Central',
+      deliveryCost: 1,
+    },
+    category: 'Combo',
+    options : {
+      Complemento1 : ['Arroz', 'Papas Fritas', 'Casamiento'],
+      Complemento2 : ['Ensalada Fresca', 'Ensalada Blanca', 'Ensalada de coditos'],
+      extras : ['tortillas de maiz', 'porcion de arroz','porcion de casamiento' ]
+    }
   },
   // ... (Añade más productos para otros establecimientos si deseas probar el filtro)
 ];
 // constants/mockData.ts (Añadir nuevos tipos e interfaces)
 
-export interface Review {
-  id: string;
-  establishmentId: string;
-  userName: string;
-  rating: number; // Valor de 1 a 5
-  comment: string;
-  date: string; // Formato simple: 'DD/MM/YYYY'
-}
+
 
 // --- Mock Data para Opiniones ---
 export const MOCK_REVIEWS: Review[] = [

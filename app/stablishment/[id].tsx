@@ -29,7 +29,7 @@ const EstablishmentDetailScreen: React.FC = () => {
   const establishment: Establishment | undefined = useMemo(() => 
     MOCK_ALL_ESTABLISHMENTS.find(e => {
       // Opcional: Agregar un console.log para verificar los valores justo antes de la comparación
-       console.log(`Buscando ID: '${id}' === Datos ID: '${e.id}'`);
+     //  console.log(`Buscando ID: '${id}' === Datos ID: '${e.id}'`);
       return e.id === id;
     }), 
     [id]

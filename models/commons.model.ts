@@ -32,6 +32,22 @@ export interface Product {
   imageUri: string; // URL de la imagen del producto
   category: 'Bebida' | 'Combo' | 'Accesorio';
   establishment : EstablishmentReference;
+ // 💡 Nueva estructura de opciones
+    options?: {
+        [key: string]: string[]; // Ejemplo: { Complemento1: ['Arroz', 'Papas Fritas', ...], extras: ['tortillas de maiz', ...] }
+    };
+}
+// Definición de un Producto para la venta
+export interface Products {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUri: string;
+  // Usado para saber a qué establecimiento pertenece
+  establishmentId: string; 
+  establishmentName: string; 
+  establishmentDeliveryCost: number; // Costo de envío del local
 }
 
 /**
@@ -72,6 +88,11 @@ export interface CartItem {
   quantity: number;
   // Referencia al establecimiento de origen
   establishment: EstablishmentReference; 
+  // 💡 NUEVOS CAMPOS:
+  // Precio base del producto (sin extras)
+  basePrice: number; 
+  // Opciones seleccionadas por el usuario (ej: { Complemento1: 'Arroz', extras: ['tortillas de maiz'] })
+  optionsSelected: { [key: string]: string | string[] };
 }
 
 /**
@@ -95,6 +116,14 @@ export interface CartTotals {
   cart : {}
 }
 
+export interface Review {
+  id: string;
+  establishmentId: string;
+  userName: string;
+  rating: number; // Valor de 1 a 5
+  comment: string;
+  date: string; // Formato simple: 'DD/MM/YYYY'
+}
 /**
  * Interfaz para las funciones y el estado expuestos por el Context
  */
