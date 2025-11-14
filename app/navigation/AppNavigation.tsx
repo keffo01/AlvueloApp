@@ -59,7 +59,7 @@ const MainAppDrawer = () => (
 
 const AppNavigator = () => {
   return (
-      <Stack.Navigator initialRouteName="Splash">
+      <Stack.Navigator initialRouteName="AppMain">
         {/* Splash Screen (sin header) */}
         <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
         

@@ -128,7 +128,11 @@ export const MOCK_PRODUCTS: Product[] = [
     name: 'El Chef',
     deliveryCost: 1,
     },
-    category: 'Combo'
+    category: 'Combo',
+    options : { 
+    Complemento1: ["Arroz", "Casamiento"],
+    Complemento2: ["Ensalada Fresca", "Ensalada de Coditos"]
+  }
   },
   {
     productId: 'p2',
@@ -141,7 +145,12 @@ export const MOCK_PRODUCTS: Product[] = [
       name: 'El Chef',
       deliveryCost: 1,
     },
-    category: 'Combo'
+    category: 'Combo',
+    options : { 
+    Complemento1: ["Arroz", "Casamiento"],
+    Complemento2: ["Ensalada Fresca", "Ensalada de Coditos"],
+    extras :[{id: 'extra1', name: 'tortillas de maiz'}, {id: 'extra2', name: 'porcion de arroz'},{id: 'extra3', name: 'porcion de casamiento' }]
+}
   },
   {
     productId: 'p3',
@@ -154,7 +163,10 @@ export const MOCK_PRODUCTS: Product[] = [
       name: 'El Gourmet Central',
       deliveryCost: 1,
     },
-    category: 'Bebida'
+    category: 'Bebida',
+    options : { 
+      Complemento1: ["Pequeño", "Mediano", "Grande"],
+}
   },
   {
     productId: 'p4',
@@ -168,12 +180,11 @@ export const MOCK_PRODUCTS: Product[] = [
       deliveryCost: 1,
     },
     category: 'Combo',
-     options : {
-      Complemento1 : ['Arroz', 'Papas Fritas', 'Casamiento'],
-      Complemento2 : ['Ensalada Fresca', 'Ensalada Blanca', 'Ensalada de coditos'],
-      extras : ['tortillas de maiz', 'porcion de arroz','porcion de casamiento' ]
-    }
-  },
+  options : { 
+    Complemento1: ["Arroz", "Casamiento"],
+    Complemento2: ["Ensalada Fresca", "Ensalada de Coditos"],
+    extras :[{id: 'extra1', name: 'tortillas de maiz'}, {id: 'extra2', name: 'porcion de arroz'},{id: 'extra3', name: 'porcion de casamiento' }]
+}  },
   {
     productId: 'p5',
     name: 'Beso de Angel',
@@ -185,7 +196,12 @@ export const MOCK_PRODUCTS: Product[] = [
       name: 'Coulant',
       deliveryCost: 1,
     },
-    category: 'Combo'
+    category: 'Combo',
+    options : { 
+    Complemento1: ["Arroz", "Casamiento"],
+    Complemento2: ["Ensalada Fresca", "Ensalada de Coditos"],
+    extras :[{id: 'extra1', name: 'tortillas de maiz'}, {id: 'extra2', name: 'porcion de arroz'},{id: 'extra3', name: 'porcion de casamiento' }]
+}
   },
   {
     productId: 'p6',
@@ -199,11 +215,11 @@ export const MOCK_PRODUCTS: Product[] = [
       deliveryCost: 1,
     },
     category: 'Combo',
-    options : {
-      Complemento1 : ['Arroz', 'Papas Fritas', 'Casamiento'],
-      Complemento2 : ['Ensalada Fresca', 'Ensalada Blanca', 'Ensalada de coditos'],
-      extras : ['tortillas de maiz', 'porcion de arroz','porcion de casamiento' ]
-    }
+   options : { 
+    Complemento1: ["Arroz", "Casamiento"],
+    Complemento2: ["Ensalada Fresca", "Ensalada de Coditos"],
+    extras :[{id: 'extra1', name: 'tortillas de maiz'}, {id: 'extra2', name: 'porcion de arroz'},{id: 'extra3', name: 'porcion de casamiento' }]
+}
   },
   // ... (Añade más productos para otros establecimientos si deseas probar el filtro)
 ];

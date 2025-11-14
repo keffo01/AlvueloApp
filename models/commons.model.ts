@@ -33,8 +33,13 @@ export interface Product {
   category: 'Bebida' | 'Combo' | 'Accesorio';
   establishment : EstablishmentReference;
  // 💡 Nueva estructura de opciones
-    options?: {
-        [key: string]: string[]; // Ejemplo: { Complemento1: ['Arroz', 'Papas Fritas', ...], extras: ['tortillas de maiz', ...] }
+  options?: {
+        // Esto le dice a TypeScript: cualquier clave de tipo string (ej. 'Complemento1')
+        // devolverá un array de strings O un array de ExtraOption (para 'extras').
+        [key: string]: string[] | ExtraOption[]; 
+        
+        // Puedes tipar 'extras' de forma más precisa si quieres:
+        // extras?: ExtraOption[]; 
     };
 }
 // Definición de un Producto para la venta
@@ -82,6 +87,7 @@ export interface EstablishmentReference {
  * Interfaz para un producto individual dentro del carrito
  */
 export interface CartItem {
+  id: string; // ID único basado en producto + opciones
   productId: string;
   name: string;
   price: number;
@@ -93,6 +99,21 @@ export interface CartItem {
   basePrice: number; 
   // Opciones seleccionadas por el usuario (ej: { Complemento1: 'Arroz', extras: ['tortillas de maiz'] })
   optionsSelected: { [key: string]: string | string[] };
+}
+// Interfaz para la nueva estructura de Extras (si no la tienes en mockData)
+export interface ExtraOption {
+    id: string;
+    name: string;
+    unitPrice: string; // La usaremos como string, pero la convertiremos a number para cálculos
+}
+
+// Define la estructura de UNA SOLA CONFIGURACIÓN
+export interface ItemConfiguration {
+    tempId: string; 
+    selections: { [key: string]: string }; 
+    // 💡 AHORA guardamos solo los IDs de los extras seleccionados
+    extras: string[]; 
+    unitPrice: number;
 }
 
 /**

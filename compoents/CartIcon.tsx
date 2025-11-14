@@ -20,6 +20,7 @@ import { CartEstablishmentGroup } from '../models/commons.model'; // 💡 Import
 
 
 const CartIcon: React.FC = () => {
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const navigation = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   // 💡 CONSUMIR DATOS DEL CONTEXTO
@@ -39,6 +40,19 @@ const CartIcon: React.FC = () => {
     // Expo Router asume 'checkout/index' si navegas a 'checkout'
     navigation.navigate('checkout' as never); 
   };
+  // 💡 FUNCIÓN PARA HACER TOGGLE
+  const toggleItemExpansion = (itemId: string) => {
+    setExpandedItems(prev => {
+      if (prev.includes(itemId)) {
+        // Si ya está en la lista, lo quitamos (colapsar)
+        return prev.filter(id => id !== itemId);
+      } else {
+        // Si no está, lo añadimos (expandir)
+        return [...prev, itemId];
+      }
+    });
+  };
+  
    // Renderiza una sección de establecimiento (Supermercado, Restaurante, etc.)
   const renderEstablishmentSection = (group: CartEstablishmentGroup) => (
     <View key={group.id} style={styles.section}>
@@ -46,19 +60,22 @@ const CartIcon: React.FC = () => {
       <View style={styles.groupHeader}>
         <Text style={styles.sectionTitle}>{group.name}</Text>
         <Text style={styles.deliveryCost}>Envío: ${group.deliveryCost.toFixed(2)}</Text>
-      </View>
-      
-     {group.items.map(item => (
-        <View key={item.productId} style={styles.itemRow}>
-          
-          {/* 💡 CONTROLES DE CANTIDAD (Eliminar, Cantidad, Añadir) */}
+      </View> 
+    {group.items.map(item => {
+    // 💡 Verificar si este ítem está expandido
+    const isExpanded = expandedItems.includes(item.id);
+    // 💡 Preparamos las opciones para ser listadas
+    const optionsArray = Object.entries(item.optionsSelected || {});
+    return (
+        <View key={item.id} style={styles.sectionItemContainer}> {/* Usamos un contenedor principal para el borde */}
+            {/* 1. FILA PRINCIPAL DEL ÍTEM (Nombre, Controles, Precio) */}
+            <View style={styles.itemRow}>         
+                {/* 💡 CONTROLES DE CANTIDAD (Eliminar, Cantidad, Añadir) */}
           <View style={styles.quantityControls}>
-            
             {/* Botón de ELIMINAR/DECREMENTAR */}
             <TouchableOpacity 
               style={styles.quantityButton}
-              onPress={() => removeItemFromCart(item.productId)}
-            >
+              onPress={() => removeItemFromCart(item.id)}>
               {/* Si es 1, muestra el icono de papelera. Si es > 1, muestra el signo de menos */}
               <Ionicons 
                 name={item.quantity === 1 ? "trash-outline" : "remove"} 
@@ -66,27 +83,66 @@ const CartIcon: React.FC = () => {
                 color={item.quantity === 1 ? Colors.error : Colors.text} 
               />
             </TouchableOpacity>
-            
             <Text style={styles.itemQuantity}>{item.quantity}</Text>
-
             {/* Botón de AÑADIR (incrementar) */}
             <TouchableOpacity 
               style={styles.quantityButton}
-              onPress={() => addItemToCart(item)} // addItemToCart acepta el item, e incrementa
-            >
-              <Ionicons 
+              // addItemToCart acepta el item, e incrementa
+              onPress={() => addItemToCart(item)}>
+                <Ionicons 
                 name="add" 
                 size={16} 
                 color={Colors.text} 
-              />
+              />   
             </TouchableOpacity>
-          </View>
-
-          {/* Nombre y Precio (Reducimos el espacio para el nombre) */}
-          <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-          <Text style={styles.itemPrice}>${(item.quantity * item.price).toFixed(2)}</Text>
-        </View>
-      ))}
+          </View>    
+                {/* Nombre y Toggle */}
+                <TouchableOpacity 
+                    style={styles.itemNameContainer} 
+                    onPress={() => toggleItemExpansion(item.id)} // 💡 Toca el nombre para expandir/colapsar
+                    activeOpacity={0.8}
+                >
+                    <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+                    {optionsArray.length > 0 && (
+                        <View style={styles.optionsToggleContainer}>
+                             <Text style={styles.optionsHint}>Ver opciones</Text>
+                            <Ionicons 
+                                name={isExpanded ? "chevron-up" : "chevron-down"} 
+                                size={14} 
+                                color={Colors.lightText} 
+                                style={styles.toggleIcon}
+                            />
+                        </View>
+                    )}
+                </TouchableOpacity>
+                <Text style={styles.itemPrice}>${(item.quantity * item.price).toFixed(2)}</Text>
+            </View>
+            {/* 2. CONTENIDO EXPANDIBLE (Solo si isExpanded es true) */}
+            {isExpanded && optionsArray.length > 0 && (
+    <View style={styles.expandedOptions}>
+        {optionsArray.map(([groupName, optionValue]) => {
+            
+            // 💡 Aseguramos que los valores no sean nulos/indefinidos y que no sean strings vacíos
+            const displayGroup = String(groupName).trim();
+            const displayValue = String(optionValue).trim();
+            
+            if (!displayGroup && !displayValue) return null; // Saltar si ambos están vacíos
+            
+            return (
+                <View key={`${item.id}-${groupName}`} style={styles.optionDetailRow}>
+                    
+                    {displayGroup && <Text style={styles.optionDetailGroup}>{displayGroup}:</Text>}
+                    
+                    {/* Aseguramos que mostramos al menos algo si el valor está presente */}
+                    {displayValue && <Text style={styles.optionDetailValue}>{displayValue}</Text>}
+                </View>
+            );
+        })}
+    </View>
+)}
+</View>
+    );
+})}
       {/* Mostrar subtotal del grupo */}
       <Text style={styles.groupSubtotal}>Subtotal Establecimiento: ${group.subtotal.toFixed(2)}</Text>
     </View>
@@ -109,29 +165,36 @@ const CartIcon: React.FC = () => {
           </View>
         )}
       </TouchableOpacity>
+        <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        {/* 1. OVERLAY: Cierra el modal al tocar el fondo oscuro */}
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)} // Cierra el modal
+        >
+            {/* 2. CONTENIDO: Detiene la propagación de toques para que los botones internos funcionen */}
+          <View 
+                style={styles.modalContent} 
+                onStartShouldSetResponder={() => true} // 💡 ESTO ES CLAVE: Detiene el toque aquí
+            >
+                {/* 3. SafeAreaProvider es ahora un envoltorio interno */}
+                <SafeAreaProvider>
+            
+            <View style={styles.modalHeader}>
+              <Text style={styles.cartTitle}>Tu Carrito ({totalItems} items)</Text>
+              {/* ESTE BOTÓN AHORA DEBE FUNCIONAR */}
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setModalVisible(false)}
-        >
-          <SafeAreaProvider style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            
-            <View style={styles.modalHeader}>
-              <Text style={styles.cartTitle}>Tu Carrito ({totalItems} items)</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color={Colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Lista de Productos por Establecimiento con ScrollView */}
-            <ScrollView style={styles.cartList}>
+            {/* Lista de Productos por Establecimiento con ScrollView */}
+            <ScrollView style={styles.cartList}>
               {groupedItems.length > 0 ? (
                 groupedItems.map(renderEstablishmentSection)
               ) : (
@@ -139,7 +202,7 @@ const CartIcon: React.FC = () => {
               )}
             </ScrollView>
 
-            {/* Resumen del Total */}
+            {/* Resumen del Total */}
             {groupedItems.length > 0 && (
               <View style={styles.summaryContainer}>
                 <View style={styles.summaryRow}>
@@ -160,15 +223,43 @@ const CartIcon: React.FC = () => {
                 </TouchableOpacity>
               </View>
             )}
-            
-          </SafeAreaProvider>
-        </TouchableOpacity>
-      </Modal>
+                </SafeAreaProvider>
+            </View>
+        </TouchableOpacity>
+      </Modal>
+      
     </>
   );
 };
 
 const styles = StyleSheet.create({
+    itemRow: {
+        // Contenedor principal del ítem
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    itemNameContainer: {
+        flex: 1, 
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginRight: Sizes.smallPadding,
+        paddingRight: Sizes.smallPadding,
+        paddingVertical: 4, // Área de toque más fácil
+    },
+    itemName: {
+        fontSize: Sizes.font,
+        color: Colors.text,
+        fontWeight: '500',
+        maxWidth: '65%', // Deja espacio para el hint
+    },
+    itemOptions: {
+        fontSize: 12, // Tamaño más pequeño
+        color: Colors.lightText, // Color gris sutil
+        fontStyle: 'italic',
+        marginTop: 2,
+    },
   iconButton: {
     paddingHorizontal: Sizes.padding,
     marginRight: 0,
@@ -237,12 +328,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginBottom: Sizes.smallPadding,
   },
-  itemRow: {
-    justifyContent: 'space-between',
-     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   itemQuantity: {
     marginRight: Sizes.smallPadding,
      fontSize: Sizes.font,
@@ -250,12 +335,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     minWidth: 18,
     textAlign: 'center',
-  },
-  itemName: {
-     flex: 1,
-    fontSize: Sizes.font,
-    color: Colors.text,
-    marginRight: Sizes.smallPadding, // Espacio antes del precio
   },
   itemPrice: {
     fontSize: Sizes.font,
@@ -338,6 +417,50 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  sectionItemContainer: {
+        marginBottom: 8,
+        paddingBottom: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F5F5F5',
+    },
+  
+    // Estilos del indicador de opciones
+    optionsToggleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Sizes.smallPadding / 2,
+        borderRadius: Sizes.radius,
+    },
+    optionsHint: {
+        fontSize: 12,
+        color: Colors.lightText,
+        marginRight: 4,
+    },
+    toggleIcon: {
+        alignSelf: 'center',
+    },
+
+    // Estilos del CONTENIDO EXPANDIDO
+    expandedOptions: {
+        backgroundColor: Colors.background,
+        padding: Sizes.smallPadding,
+        paddingTop: 0,
+        marginBottom: Sizes.smallPadding,
+    },
+    optionDetailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingVertical: 2,
+    },
+    optionDetailGroup: {
+        fontSize: 12,
+        color: Colors.text,
+        fontWeight: 'bold',
+    },
+    optionDetailValue: {
+        fontSize: 12,
+        color: Colors.lightText,
+    },
 });
 
 export default CartIcon;

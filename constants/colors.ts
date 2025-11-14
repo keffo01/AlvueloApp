@@ -7,6 +7,10 @@ export default {
   // Colores principales de la marca
   primary: '#1897d6ff',   // Morado oscuro (usado en Splash Screen, botones principales)
   secondary: '#03DAC6', // Turquesa (para acentos, notificaciones)
+  white : '#FFFFFF',
+  grey : '#6c757d',
+  lightGrey : '#f8f9fa',
+  border: '#dee2e6',
   
   // Colores de la interfaz de usuario
   background: '#FFFFFF', // Fondo de la pantalla

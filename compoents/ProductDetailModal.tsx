@@ -1,8 +1,11 @@
 // components/ProductDetailModal.tsx
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useMemo } from 'react';
-import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// 💡 NUEVOS IMPORTS
+import { Picker } from '@react-native-picker/picker';
+import React, { useEffect, useMemo, useState } from 'react'; // Importar useState y useEffect
+import { ImageBackground, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Importar Platform
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '../constants/colors';
 import Sizes from '../constants/Sizes';
 import { useCart } from '../context/CartContext';
@@ -23,30 +26,68 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     establishmentId
 }) => {
   const { cart, addItemToCart, incrementQuantity, decrementQuantity } = useCart();
-
-  // Buscar si el producto ya está en el carrito para mostrar la cantidad
+// 💡 ESTADO PARA OPCIONES SELECCIONADAS: { Complemento1: 'Arroz', Complemento2: 'Ensalada Fresca' }
+    const [selectedOptions, setSelectedOptions] = useState<{[key: string]: string}>({});
+  // 💡 INICIALIZAR OPCIONES AL MONTAR
+  useEffect(() => {
+        const initialSelections: {[key: string]: string} = {}; 
+        
+        // Usamos encadenamiento opcional (?) para protección y una condición de existencia
+        if (product.options) {
+            Object.keys(product.options).forEach(key => {
+                // Obtenemos el array de opciones
+                const optionsList = product.options![key]; // Usamos '!' aquí si TypeScript lo requiere, pero debería ser manejado por la interfaz
+                
+                // 💡 CHEQUEOS DE ROBUSTEZ:
+                if (
+                    key.includes('Complemento') && 
+                    Array.isArray(optionsList) && 
+                    optionsList.length > 0 &&
+                    typeof optionsList[0] === 'string' // Aseguramos que es la lista de strings, no 'extras'
+                ) {
+                    // Ahora TypeScript sabe que optionsList es un array de strings aquí.
+                    initialSelections[key] = optionsList[0] as string; 
+                }
+            });
+            setSelectedOptions(initialSelections);
+        }
+    }, [product.options]);
+    // Buscar si el producto ya está en el carrito para mostrar la cantidad
   const cartItem = useMemo(() => {
     return cart.find(item => item.productId === product.productId);
   }, [cart, product.productId]);
   
   const quantity = cartItem?.quantity || 0;
-
+// 💡 FUNCIÓN PARA MANEJAR EL CAMBIO DEL PICKER
+    const handleOptionChange = (group: string, value: string) => {
+        setSelectedOptions(prev => ({
+            ...prev,
+            [group]: value, // Actualiza solo el grupo de complemento modificado
+        }));
+    };
   const handleAddToCart = () => {
     // ⚠️ Pasamos el producto enriquecido con los datos necesarios del establecimiento
     addItemToCart({ 
         ...product, 
-        productId: product.productId, // Asegurarse de usar productId
+        productId: product.productId, 
         establishmentId: establishmentId,
-        establishmentDeliveryCost: deliveryCost
+        establishmentDeliveryCost: deliveryCost,
+        
+        // 💡 NUEVO CAMPO: Opciones seleccionadas
+        optionsSelected: selectedOptions,
     } as any); // Usamos 'as any' temporalmente si la interfaz de Product no está extendida
   };
 
   return (
-    <View style={styles.container}>
-      {/* Botón de Cerrar */}
-      <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-        <Ionicons name="close-circle" size={Sizes.header} color={Colors.lightText} />
-      </TouchableOpacity>
+    // 💡 1. Usar SafeAreaView como contenedor principal
+        <SafeAreaView style={styles.container}> 
+            
+            {/* 💡 2. CABECERA: Contenedor para el botón de cerrar y la información clave */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                    <Ionicons name="close-circle" size={Sizes.header} color={Colors.lightText} />
+                </TouchableOpacity>
+            </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Imagen o Placeholder */}
@@ -65,10 +106,36 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           <Text style={styles.description}>
             {product.description || "Descripción detallada del producto. Aquí se explicarían los ingredientes y cualquier opción de personalización. Por ahora, solo es texto de relleno."}
           </Text>
-          
-          {/* Aquí iría la lógica de opciones y modificadores (futuro) */}
-          <Text style={styles.optionsTitle}>Opciones Adicionales (Futuro)</Text>
-          <View style={styles.optionsPlaceholder} />
+          {/* 💡 CONTENEDOR DE OPCIONES (PICKERS) */}
+<Text style={styles.optionsTitle}>Opciones Adicionales</Text>
+<View style={styles.optionsContainer}> 
+    
+    {/* 💡 MAPEAR COMPLEMENTO1 y COMPLEMENTO2 */}
+    {Object.keys(product.options || {}).filter(key => key.includes('Complemento')).map(group => (
+        <View key={group} style={styles.optionGroup}>
+            <Text style={styles.pickerLabel}>{group}:</Text>
+            
+            <View style={styles.pickerContainer}>
+                <Picker
+                    // 1. Valor actual para este grupo
+                    selectedValue={selectedOptions[group]}
+                    
+                    // 2. Función de cambio
+                    onValueChange={(itemValue: string) => handleOptionChange(group, itemValue)}
+                    
+                    style={styles.picker}
+                    itemStyle={Platform.OS === 'ios' ? styles.pickerItem : undefined}
+                >
+                    {/* 3. Mapear las opciones DENTRO DE ESE GRUPO */}
+                    {(product.options![group] as string[]).map((option: string) => (
+                        <Picker.Item key={option} label={option} value={option} />
+                    ))}
+                </Picker>
+            </View>
+        </View>
+    ))}
+
+</View>
 
         </View>
       </ScrollView>
@@ -108,7 +175,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -217,6 +284,39 @@ const styles = StyleSheet.create({
       borderRadius: Sizes.radius, // Asegura que la imagen tenga los bordes redondeados
       resizeMode: 'cover', // Cubre todo el área
     },
+    optionsContainer: {
+        marginBottom: Sizes.padding,
+        padding: Sizes.smallPadding,
+        backgroundColor: Colors.background,
+        borderRadius: Sizes.radius,
+    },
+    optionGroup: {
+        marginBottom: Sizes.smallPadding,
+    },
+    pickerLabel: {
+        fontSize: Sizes.font,
+        fontWeight: '600',
+        color: Colors.text,
+        marginBottom: Sizes.smallPadding,
+    },
+    pickerContainer: {
+        // Contenedor para el borde del Picker
+        borderWidth: 1,
+        borderColor: Colors.lightText,
+        borderRadius: Sizes.radius,
+        backgroundColor: Colors.background,
+        overflow: 'hidden', // Necesario para que el borde se vea bien en algunas plataformas
+    },
+    picker: {
+        height: Platform.select({ ios: 100, android: 50 }), // iOS necesita más altura
+        width: '100%',
+        color: Colors.text,
+    },
+    pickerItem: {
+        fontSize: Sizes.font,
+        color: Colors.text,
+    },
+    
 });
 
 export default ProductDetailModal;

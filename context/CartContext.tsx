@@ -34,6 +34,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [cart, setCart] = useState<CartItem[]>([]);
   const [establishmentId, setEstablishmentId] = useState<string | null>(null);
   const [deliveryCost, setDeliveryCost] = useState(0);
+  interface ItemToAdd extends Omit<CartItem, 'id' | 'quantity'> {}
 
   // Función de ayuda para calcular los totales y agrupar items
   const calculateCartTotals = (currentCart: CartItem[]): CartTotals => {
@@ -85,36 +86,41 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // --- Lógica para Añadir Items ---
-  const addItemToCart = (itemToAdd: Omit<CartItem, 'quantity'>) => {
+  const addItemToCart = (itemToAdd: ItemToAdd) => {
+    // 💡 1. Generar un ID ÚNICO BASADO EN LAS OPCIONES
+const optionsString = JSON.stringify(itemToAdd.optionsSelected);
+// El ID debe ser una combinación del producto y las opciones
+const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
     setCart(prevCart => {
-            
-            // 💡 EL CAMBIO CLAVE: Usa itemToAdd.id (el ID del producto que se añade)
-            // para compararlo con item.productId (el ID del ítem que ya está en el carrito).
-            const existingItemIndex = prevCart.findIndex(
-                item => item.productId === itemToAdd.productId
-            );
+    // 2. Buscamos el ítem por el ID ÚNICO (incluyendo opciones)
+    const existingItemIndex = prevCart.findIndex(
+        item => item.id === uniqueItemId 
+    );
+    
+    // Crear el nuevo ítem, incluyendo el ID único y la cantidad inicial de 1
+    const newItem: CartItem = {
+        ...itemToAdd,
+        id: uniqueItemId, // 💡 Usar el ID ÚNICO
+        quantity: 1,
+    };
 
-            // Si se encuentra (mismo producto, incrementar cantidad)
-            if (existingItemIndex > -1) {
-                const newCart = [...prevCart];
-                newCart[existingItemIndex].quantity += 1;
-                return newCart;
-            } else {
-                // Si NO se encuentra (nuevo producto, añadirlo)
-                const newItem: CartItem = {
-                    ...itemToAdd,
-                    productId: itemToAdd.productId, // 👈 Aseguramos que el CartItem guarda el ID del producto
-                    quantity: 1,
-                };
-                return [...prevCart, newItem];
-            }
-        });
+    if (existingItemIndex > -1) {
+        // 3. Si el ítem con las MISMAS OPCIONES existe, solo incrementamos
+        const newCart = [...prevCart];
+        newCart[existingItemIndex].quantity += 1;
+        return newCart;
+    } else {
+        // 4. Si es una NUEVA COMBINACIÓN de opciones, añadimos como nuevo ítem
+        // ... (Lógica de establecimiento si el carrito está vacío) ...
+        return [...prevCart, newItem];
+    }
+});
   };
 // 💡 1. FUNCIÓN PARA INCREMENTAR CANTIDAD
-  const incrementQuantity = (productId: string) => {
+  const incrementQuantity = (itemId: string) => {
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
-        item => item.productId === productId
+        item => item.id === itemId
       );
 
       if (existingItemIndex > -1) {
@@ -128,10 +134,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // 💡 2. FUNCIÓN PARA DECREMENTAR CANTIDAD
-  const decrementQuantity = (productId: string) => {
+  const decrementQuantity = (itemId: string) => {
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
-        item => item.productId === productId
+        item => item.id === itemId
       );
 
       if (existingItemIndex > -1) {
@@ -144,7 +150,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return newCart;
         } else {
           // Si la cantidad es 1, lo eliminamos del carrito (cantidad llega a 0)
-          const updatedCart = newCart.filter(item => item.productId !== productId);
+          const updatedCart = newCart.filter(item => item.id !== itemId);
           
           // Si el carrito queda vacío, reseteamos los costos del establecimiento
           if (updatedCart.length === 0) {
@@ -162,10 +168,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // --- Lógica para Eliminar Items ---
-  const removeItemFromCart = (productId: string) => {
+  const removeItemFromCart = (itemId: string) => {
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
-        item => item.productId === productId
+        item => item.id === itemId
       );
 
       if (existingItemIndex > -1) {
@@ -176,7 +182,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return newCart;
         } else {
           // Si es 1, elimina el item del carrito
-          return prevCart.filter(item => item.productId !== productId);
+          return prevCart.filter(item => item.id !== itemId);
         }
       }
       return prevCart; // No se encontró, no cambia el carrito
