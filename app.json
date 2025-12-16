@@ -10,12 +10,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
-      "config": {
-        "googleSignIn": {
-          "clientId": "TU_IOS_CLIENT_ID_DE_GOOGLE.apps.googleusercontent.com" // Opcional si solo usas la webClientId
-        }
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +32,20 @@
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "alvueloapp" // 👈 CRÍTICO: Registra el esquema para Deep Linking
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ],
       "package": "com.alvuelo.alvueloApp"
     },
