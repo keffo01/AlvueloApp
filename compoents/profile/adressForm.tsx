@@ -1,5 +1,6 @@
 // components/AddressForm.tsx
 
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/colors';
@@ -18,6 +19,7 @@ interface AddressFormProps {
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({ initialAddress, onCancel, onSave }) => {
+  const router = useRouter();
   const [addressName, setAddressName] = useState(''); // Ej: "Casa", "Oficina"
   const [reference, setReference] = useState(''); // Ej: "Apartamento 3B", "Al lado del parque"
 
@@ -47,6 +49,9 @@ const AddressForm: React.FC<AddressFormProps> = ({ initialAddress, onCancel, onS
     
     // 3. Volver a la pantalla anterior o cerrar el modal
     onCancel(); 
+
+    // redirigimos al perfil o lista de direcciones
+    router.replace('/(drawer)/Profile');
   };
 
   return (

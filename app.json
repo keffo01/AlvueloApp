@@ -2,6 +2,7 @@
   "expo": {
     "name": "alvueloApp",
     "slug": "alvueloApp",
+    "owner": "alvuelo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +10,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleSignIn": {
+          "clientId": "TU_IOS_CLIENT_ID_DE_GOOGLE.apps.googleusercontent.com" // Opcional si solo usas la webClientId
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,6 +27,9 @@
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDii4CiI3svk0VrKe36s2qhorxkeL9UD6o"
+        },
+        "googleSignIn": {
+          "clientId": "1078282422673-c3nsfarsog4f19u6ajk09rjfkokjbnrl.apps.googleusercontent.com.apps.googleusercontent.com" // Opcional si solo usas la webClientId
         }
       },
       "edgeToEdgeEnabled": true,
@@ -33,9 +42,15 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "config": {
+        "googleSignIn": {
+          "webClientId": "1078282422673-d5dqhf0gc9f7k05vcbmq2oghk7vpsm7t.apps.googleusercontent.com.apps.googleusercontent.com"
+        }
+      }
     },
     "plugins": [
+      
       "expo-router",
       [
         "expo-splash-screen",
@@ -56,7 +71,21 @@
           "locationPermission": "Allow $(PRODUCT_NAME) to use your location"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "photoLibraryPermission": "Allow $(PRODUCT_NAME) to access your photos"
+        }
+      ],
+       [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.1078282422673-d5dqhf0gc9f7k05vcbmq2oghk7vpsm7t"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

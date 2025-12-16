@@ -3,8 +3,8 @@
 import { Stack, useRouter } from 'expo-router'; // 💡 Añadir useRouter para la navegación
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // 💡 Añadir View y Text
-import ProfileHeader from '../../compoents/profile/header'; // 💡 Importar el componente del encabezado
 import ProfileOption from '../../compoents/profile/options'; // 💡 Importar el nuevo componente
+import ProfileHeader from '../../compoents/profile/profileHeader'; // 💡 Importar el componente del encabezado
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
@@ -21,7 +21,6 @@ const ProfileScreen: React.FC = () => {
   // Lista de opciones para el menú
   const ACCOUNT_OPTIONS = [
     { iconName: 'location-outline', title: 'Mis Direcciones', onPress: () => handleNavigation('/adresses') },
-    { iconName: 'card-outline', title: 'Métodos de Pago', onPress: () => handleNavigation('payments') },
     { iconName: 'notifications-outline', title: 'Notificaciones', onPress: () => handleNavigation('notifications') },
   ];
 
