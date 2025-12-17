@@ -1,6 +1,6 @@
 // hooks/useGoogleAuth.ts
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
+import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
@@ -57,7 +57,8 @@ const fetchUserInfo = async (accessToken: string) => {
 
         if (backendResponse.ok && data.sessionToken) {
             // 2. Guardar el token JWT propio en AsyncStorage
-            await AsyncStorage.setItem('user_token', data.sessionToken);
+            // Para guardar el token:
+            await SecureStore.setItemAsync('user_token', data.sessionToken);
             
             // 3. Actualizar el estado para ir al Home
             setUserToken(data.sessionToken); 

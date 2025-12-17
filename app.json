@@ -24,7 +24,7 @@
           "apiKey": "AIzaSyDii4CiI3svk0VrKe36s2qhorxkeL9UD6o"
         },
         "googleSignIn": {
-          "clientId": "1078282422673-c3nsfarsog4f19u6ajk09rjfkokjbnrl.apps.googleusercontent.com.apps.googleusercontent.com" // Opcional si solo usas la webClientId
+          "clientId": "1078282422673-c3nsfarsog4f19u6ajk09rjfkokjbnrl.apps.googleusercontent.com.apps.googleusercontent.com"
         }
       },
       "edgeToEdgeEnabled": true,
@@ -38,7 +38,7 @@
           "action": "VIEW",
           "data": [
             {
-              "scheme": "alvueloapp" // 👈 CRÍTICO: Registra el esquema para Deep Linking
+              "scheme": "alvueloapp"
             }
           ],
           "category": [
@@ -59,8 +59,6 @@
       }
     },
     "plugins": [
-      
-      
       "expo-router",
       [
         "expo-splash-screen",
@@ -85,18 +83,17 @@
       [
         "expo-image-picker",
         {
-          
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "photoLibraryPermission": "Allow $(PRODUCT_NAME) to access your photos"
         }
       ],
-       [
+      [
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.1078282422673-d5dqhf0gc9f7k05vcbmq2oghk7vpsm7t"
         }
       ],
-      ["@react-native-async-storage/async-storage"]
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

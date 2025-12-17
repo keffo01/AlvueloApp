@@ -1,7 +1,9 @@
 // context/AuthContext.tsx
 
+import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useGoogleAuth } from '../hooks/useGoogleAuth'; // Importamos tu hook
+
 
 
 interface AuthContextType {
@@ -35,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         // Simulación de carga (Aquí leerías AsyncStorage)
         const loadToken = async () => {
+            const token = await SecureStore.getItemAsync('user_token');
             // const storedToken = await AsyncStorage.getItem('user_token');
             // setToken(storedToken);
             // setToken(userToken); // Si lo tienes sincronizado con Google Auth
@@ -48,8 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithGoogle(); 
     };
 
-    const signOut = () => {
+    const signOut = async () => {
         // Lógica de cierre de sesión: limpiar token, AsyncStorage, etc.
+        await SecureStore.deleteItemAsync('user_token');
         setToken(null); 
         // Lógica de desautenticación de Google si es necesaria
     };
