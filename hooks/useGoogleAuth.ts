@@ -20,25 +20,32 @@ export const useGoogleAuth = () => {
 
     const [request, response, promptAsync] = Google.useAuthRequest({
         // 2. ⚠️ conectamos al cliente android, tambien se puede al cliente ios si es necesario
-        androidClientId: GOOGLE_ANDROID_CLIENT_ID
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        androidClientId: GOOGLE_ANDROID_CLIENT_ID,  
         });
 
     useEffect(() => {
-        console.log("Google Auth Response:", response);
-        if (response?.type === 'success') {
+       
+        handleLogin();
+       
+    }, [response]);
 
+const handleLogin = () =>{
+     console.log("Google Auth Response:", response);
+     if (response?.type === 'success') {
             const { authentication } = response;
             if (authentication?.accessToken) {
                 fetchUserInfo(authentication.accessToken);
             }
-        } else if (response?.type === 'error') {
+        } else {
             setIsAuthenticating(false);
             Alert.alert('Error', 'Fallo en la autenticación de Google');
-            console.error('Auth Error:', response.error);
+          //  console.error('Auth Error:', response.error);
         }
-    }, [response]);
+}
 
 const fetchUserInfo = async (accessToken: string) => {
+    if(!accessToken) return;
     try {
         setIsAuthenticating(true);
         const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
