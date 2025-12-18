@@ -47,6 +47,7 @@
           ]
         }
       ],
+      "launchMode": "singleTask", // 👈 CRÍTICO: Evita que la app se reinicie al volver de Google
       "package": "com.alvuelo.alvueloApp"
     },
     "web": {

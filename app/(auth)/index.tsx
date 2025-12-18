@@ -6,17 +6,14 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
-import { useAuth } from '../../context/authContext'; // 💡 Importar el hook de contexto
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
 
 const AuthScreen: React.FC = () => {
     const { userToken, isAuthenticating, signInWithGoogle, isGoogleRequestReady } = useGoogleAuth();
-    // Usamos el hook de Auth Context para manejar el estado global
-    const { signIn } = useAuth(); 
-
+   
     // Reemplaza la llamada a signInWithGoogle con la llamada a signIn del contexto
     const handleGoogleSignIn = () => {
-        signIn(); 
+        signInWithGoogle();
     };
 
     // Redirigir si el usuario se autenticó
