@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "alvueloapp",
-    "slug": "alvueloapp",
+    "name": "alvueloApp",
+    "slug": "alvueloApp",
     "owner": "alvuelo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -48,7 +48,7 @@
         }
       ],
       "launchMode": "singleTask", // 👈 CRÍTICO: Evita que la app se reinicie al volver de Google
-      "package": "com.alvuelo.alvueloapp"
+      "package": "com.alvuelo.alvueloApp"
     },
     "web": {
       "output": "static",
