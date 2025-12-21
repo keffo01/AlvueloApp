@@ -2,56 +2,48 @@ import colors from '@/constants/colors';
 import Sizes from '@/constants/Sizes';
 import { useAuth } from '@/context/authContext';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-export default function index() {
+export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleLogin = async () => {
-    const payload = { email: email.trim(), password: password };
-    if (!email || !password) {
-      Alert.alert("Error", "Por favor llena todos los campos");
-      return;
-    }
-
-    setLoading(true);
+  const handleRegister = async () => {
     try {
+          const payload = { email: email.trim(), password: password };
 
-      const response = await fetch('https://jfzj8yx48i.execute-api.us-east-2.amazonaws.com/Dev/login', {
+      const response = await fetch('https://jfzj8yx48i.execute-api.us-east-2.amazonaws.com/Dev/register', {
         method: 'POST',
         headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json', }, // 👈 ESTO ES VITAL
         body: JSON.stringify(payload), // 👈 VITAL: Convertir el objeto a texto
-  });
+      });
 
       const data = await response.json();
-      const userData = JSON.parse(data.body);
 
-      if(data.statusCode == 400){return Alert.alert("Error", "Faltan credenciales");}
-      if(data.statusCode == 401){return Alert.alert("Error", "Credenciales incorrectas");}
-      if (data.statusCode === 200) {
-        // Guardamos el token y el flag isNewUser que viene de la Lambda
-        await login(userData.token, userData.isNewUser);
+    if(data.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
+
+    if(data.statusCode == 409){return Alert.alert("Warning", "email registrado");}
+    if(data.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
+
+    if(data.statusCode == 201){
+        // Al registrarse, el backend debe devolver isNewUser: true
+        await login(data.token, true);
         
-        if (userData.isNewUser) {
-          router.replace('/adresses/map'); // Ruta a tu mapa
-        } else {
-           router.replace('/(drawer)');
-        }
+        // CHALLENGE 1: Redirigir al mapa inmediatamente
+        Alert.alert("¡Bienvenido!", "Por favor, registra tu dirección inicial.");
+        router.replace('/adresses/map'); 
       } else {
-        Alert.alert("Error", data.message || "Credenciales incorrectas");
+        Alert.alert("Error", data.message);
       }
     } catch (error) {
-      Alert.alert("Error", "No se pudo conectar al servidor");
-    } finally {
-      setLoading(false);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
+      console.error(error);
     }
   };
 
@@ -76,19 +68,19 @@ export default function index() {
         secureTextEntry
       />
 
-      <TouchableOpacity 
-        style={styles.loginButton} 
-        onPress={handleLogin}
+     <TouchableOpacity 
+        style={styles.registerButton} 
+        onPress={handleRegister}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Ingresar</Text>}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Registrarse</Text>}
       </TouchableOpacity>
 
       {/* 💡 ESTA ES LA PARTE QUE SOLICITASTE */}
       <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>¿No tienes una cuenta? </Text>
-        <TouchableOpacity onPress={() => router.push('/registerScreen')}>
-          <Text style={styles.signupLink}>Regístrate</Text>
+        <Text style={styles.signupText}>¿Ya tienes una cuenta? </Text>
+        <TouchableOpacity onPress={() => router.push('/')}>
+          <Text style={styles.signupLink}>Iniciar Sesión</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -117,8 +109,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  loginButton: {
-    backgroundColor: colors.primary,
+  registerButton: {
+    backgroundColor: colors.secondary,
     padding: Sizes.padding,
     borderRadius: Sizes.radius,
     alignItems: 'center',

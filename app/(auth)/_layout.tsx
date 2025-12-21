@@ -4,6 +4,7 @@ export default function AuthLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" /> {/* Esto apunta a app/(auth)/index.tsx (tu AuthScreen) */}
+      <Stack.Screen name="registerScreen" /> 
       {/* Aquí irían otras pantallas de autenticación: registro, olvidé contraseña, etc. */}
     </Stack>
   );

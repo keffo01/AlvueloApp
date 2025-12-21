@@ -2,7 +2,7 @@
 
 import Ionicons from '@expo/vector-icons/Ionicons'; // 💡 NUEVO
 import * as Location from 'expo-location';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react'; // 💡 Añadir useRef
 import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { LatLng, Marker, Region } from 'react-native-maps';
@@ -10,6 +10,7 @@ import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
 // Importa el componente (manteniendo tu ruta, aunque 'compoents' puede ser un typo)
+import { useAuth } from '@/context/authContext';
 import AddressForm from '../../compoents/profile/adressForm';
 
 // Definiciones de tipos (Se asume que están correctas)
@@ -35,7 +36,8 @@ const AddressesScreen: React.FC = () => {
   const [initialRegion, setInitialRegion] = useState<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { userToken, isNewUser, completeOnboarding } = useAuth(); // 👈 Obtenemos el estado global
+
   // Estado para el formulario
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [addressDataForForm, setAddressDataForForm] = useState<AddressDataForForm | null>(null);
@@ -143,8 +145,51 @@ const AddressesScreen: React.FC = () => {
     setAddressDataForForm(null);
   };
 
-  const handleSaveFinalAddress = (finalAddress: any) => {
-    console.log('Dirección final a guardar:', finalAddress);
+ // 💡 ACTUALIZACIÓN: Función para guardar en DynamoDB
+  const handleSaveFinalAddress = async (finalAddress: any) => {
+    setIsLoading(true);
+    const email = atob(userToken || ''); // Decodificar el email del token almacenado
+    try {
+      // 1. Llamada a tu API Gateway (Lambda de updateAddress)
+      const response = await fetch('https://jfzj8yx48i.execute-api.us-east-2.amazonaws.com/Dev/update-address', {
+        method: 'POST',
+         headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json', }, // 👈 ESTO ES VITAL
+        body: JSON.stringify({
+          email: email,
+          hasAddress : true, // O el identificador que uses en Dynamo
+          addressData: {
+            ...finalAddress,
+            id: Date.now().toString(), // Generamos un ID si es nueva
+          }
+        }),
+      });
+      const responseData = await response.json();
+      console.log("Respuesta de update-address:", responseData);
+      
+      if(responseData.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
+
+      if (responseData.statusCode === 200) {
+        setIsFormVisible(false);
+        
+        // 🚀 LÓGICA DE REDIRECCIÓN (EL CHALLENGE)
+        if (isNewUser) {
+          // Si es nuevo: marcar onboarding como completo y enviar a Home
+          completeOnboarding(); 
+          Alert.alert("¡Éxito!", "Tu dirección ha sido guardada. ¡Bienvenido!");
+          router.replace('/(drawer)'); 
+        } else {
+          // Si no es nuevo: simplemente regresar al perfil
+          router.replace('/(drawer)/profile');
+        }
+      }
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      Alert.alert("Error", "Ocurrió un error de red.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading || !initialRegion) {
