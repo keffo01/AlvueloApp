@@ -87,6 +87,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // --- Lógica para Añadir Items ---
   const addItemToCart = (itemToAdd: ItemToAdd) => {
+    console.log("ITEM AÑADIDO", itemToAdd.name)
     // 💡 1. Generar un ID ÚNICO BASADO EN LAS OPCIONES
 const optionsString = JSON.stringify(itemToAdd.optionsSelected);
 // El ID debe ser una combinación del producto y las opciones
@@ -115,6 +116,7 @@ const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
         return [...prevCart, newItem];
     }
 });
+
   };
 // 💡 1. FUNCIÓN PARA INCREMENTAR CANTIDAD
   const incrementQuantity = (itemId: string) => {

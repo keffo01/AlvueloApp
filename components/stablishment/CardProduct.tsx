@@ -2,7 +2,6 @@
 
 import colors from '@/constants/colors';
 import Sizes from '@/constants/Sizes';
-import { useCart } from '@/context/CartContext';
 import { Product } from '@/models/commons.model';
 import React, { useState } from 'react';
 import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -17,9 +16,8 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, deliveryCost }) => {
-  const { addItemToCart } = useCart();
    const [isModalVisible, setIsModalVisible] = useState(false);
-  
+  console.log("RENDERIZANDO PRODUCT CARD CON ESTABLISHMENT ID:", establishmentId);
 
  const handleOpenModal = () => {
     setIsModalVisible(true);

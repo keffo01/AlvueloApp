@@ -16,7 +16,7 @@ const ProfileScreen: React.FC = () => {
   // Simulación de navegación
   const handleNavigation = (path: any) => {
     // Por ahora solo mostrará una alerta, luego lo reemplazas con router.push(path)
-    alert(`Navegando a: ${path}`); 
+    //alert(`Navegando a: ${path}`); 
      router.replace(path); // Descomentar cuando tengas las rutas
   };
   

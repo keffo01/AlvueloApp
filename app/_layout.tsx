@@ -1,3 +1,4 @@
+import { CartProvider } from '@/context/CartContext';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
@@ -9,7 +10,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 export default function RootLayout() {
   return (
     <AuthProvider>
+      <CartProvider>
       <MainNavigation />
+      </CartProvider>
     </AuthProvider>
   );
 }

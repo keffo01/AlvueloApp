@@ -9,7 +9,7 @@
     "scheme": "alvueloapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-    "image": "AlvueloApp/assets/images/logo.png", 
+    "image": "./assets/images/logo.png", 
     "resizeMode": "contain",
     "backgroundColor": "#ffffff" 
   },
