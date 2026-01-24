@@ -1,5 +1,6 @@
 // navigation/CustomDrawerContent.tsx
 
+import { useAuth } from '@/context/authContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   DrawerContentComponentProps,
@@ -16,12 +17,9 @@ import Sizes from '../../constants/Sizes';
 type CustomDrawerProps = DrawerContentComponentProps;
 
 const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
-
+ const { logout } = useAuth();
   const handleLogout = () => {
-    // 💡 Aquí va la lógica real de cierre de sesión:
-    // 1. Limpiar token de AsyncStorage.
-    // 2. Limpiar el estado global (Context/Redux).
-    // 3. Navegar a la pantalla de Login (usando replace).
+   
     
     Alert.alert(
       "Cerrar Sesión",
@@ -35,6 +33,7 @@ const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
           text: "Sí, Cerrar", 
           onPress: () => {
             // Lógica de navegación a Login/Splash
+            logout();
             console.log("Sesión cerrada");
             // Nota: Aquí usaríamos navigation.replace('Login')
           }

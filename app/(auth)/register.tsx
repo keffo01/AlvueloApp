@@ -9,10 +9,11 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { setToken } = useAuth();
   const router = useRouter();
 
   const handleRegister = async () => {
+     setLoading(true);
     try {
           const payload = { email: email.trim(), password: password };
 
@@ -25,16 +26,20 @@ export default function RegisterScreen() {
       });
 
       const data = await response.json();
-
+      console.log("Respuesta del registro:", JSON.stringify(data));
     if(data.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
 
-    if(data.statusCode == 409){return Alert.alert("Warning", "email registrado");}
-    if(data.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
+    if(data.statusCode == 409){
+      setLoading(false);
+      return Alert.alert("Warning", "email registrado"); 
+}
+    if(data.statusCode == 500){
+      setLoading(false);
+      return Alert.alert("Network", "Error del servidor");
+}
 
     if(data.statusCode == 201){
-        // Al registrarse, el backend debe devolver isNewUser: true
-        await login(data.token, true);
-        
+      await setToken(data.token);
         // CHALLENGE 1: Redirigir al mapa inmediatamente
         Alert.alert("¡Bienvenido!", "Por favor, registra tu dirección inicial.");
         router.replace('/adresses/map'); 

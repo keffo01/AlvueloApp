@@ -32,15 +32,18 @@ export default function index() {
   });
 
       const data = await response.json();
-      const userData = JSON.parse(data.body);
 
-      if(data.statusCode == 400){return Alert.alert("Error", "Faltan credenciales");}
-      if(data.statusCode == 401){return Alert.alert("Error", "Credenciales incorrectas");}
+      if(data.statusCode == 400){
+        return Alert.alert("Error", "Faltan credenciales");
+      }
+      if(data.statusCode == 401){
+        return Alert.alert("Error", "Credenciales incorrectas");
+      }
       if (data.statusCode === 200) {
         // Guardamos el token y el flag isNewUser que viene de la Lambda
-        await login(userData.token, userData.isNewUser);
+        await login(data.token, data.isNewUser);
         
-        if (userData.isNewUser) {
+        if (data.hasAddress === false) {
           router.replace('/adresses/map'); // Ruta a tu mapa
         } else {
            router.replace('/(drawer)');
@@ -50,6 +53,7 @@ export default function index() {
       }
     } catch (error) {
       Alert.alert("Error", "No se pudo conectar al servidor");
+      console.error(error);
     } finally {
       setLoading(false);
     }

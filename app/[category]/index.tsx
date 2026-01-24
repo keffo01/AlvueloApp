@@ -6,7 +6,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import Sizes from '../../constants/Sizes';
 
 // Importar datos y componentes
-import EstablishmentCard from '@/compoents/HomeScreen/EstablishmentCard';
+import EstablishmentCard from '@/components/HomeScreen/EstablishmentCard';
 import colors from '@/constants/colors';
 import { Establishment } from '@/models/commons.model';
 import { MOCK_ALL_ESTABLISHMENTS } from '../../constants/mockData';

@@ -11,7 +11,7 @@ import Sizes from '../../constants/Sizes';
 
 // Importa el componente (manteniendo tu ruta, aunque 'compoents' puede ser un typo)
 import { useAuth } from '@/context/authContext';
-import AddressForm from '../../compoents/profile/adressForm';
+import AddressForm from '../../components/profile/adressForm';
 
 // Definiciones de tipos (Se asume que están correctas)
 interface SelectedLocation {
@@ -154,7 +154,6 @@ const AddressesScreen: React.FC = () => {
       const response = await fetch('https://jfzj8yx48i.execute-api.us-east-2.amazonaws.com/Dev/update-address', {
         method: 'POST',
          headers: {
-      'Accept': 'application/json',
       'Content-Type': 'application/json', }, // 👈 ESTO ES VITAL
         body: JSON.stringify({
           email: email,
@@ -167,22 +166,19 @@ const AddressesScreen: React.FC = () => {
       });
       const responseData = await response.json();
       console.log("Respuesta de update-address:", responseData);
-      
+        console.log("Statud code :",responseData.statusCode);
+
+      if(responseData.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
       if(responseData.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
 
       if (responseData.statusCode === 200) {
-        setIsFormVisible(false);
-        
-        // 🚀 LÓGICA DE REDIRECCIÓN (EL CHALLENGE)
-        if (isNewUser) {
-          // Si es nuevo: marcar onboarding como completo y enviar a Home
-          completeOnboarding(); 
-          Alert.alert("¡Éxito!", "Tu dirección ha sido guardada. ¡Bienvenido!");
-          router.replace('/(drawer)'); 
-        } else {
-          // Si no es nuevo: simplemente regresar al perfil
-          router.replace('/(drawer)/profile');
-        }
+          // marcar onboarding como completo y enviar a Home
+          await completeOnboarding(); 
+
+          Alert.alert("¡Éxito!", "Tu dirección ha sido guardada. ¡Bienvenido!"); 
+
+          setIsFormVisible(false);
+          router.replace('/(drawer)');  
       }
     } catch (error) {
       console.error("Error al guardar:", error);

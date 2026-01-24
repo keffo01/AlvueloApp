@@ -18,7 +18,7 @@ const EstablishmentCard: React.FC<EstablishmentCardProps> = ({ establishment }) 
   const handlePress = () => {
     // Navega a la ruta dinámica: /establishment/[id]
     // Expo Router traduce 'establishment/e1' a la ruta correcta.
-    navigation.push(`/stablishment/${establishment.id}` as any);
+    navigation.push(`/establishment/${establishment.id}` as any);
   };
   return (
     <TouchableOpacity 

@@ -11,7 +11,7 @@ const SplashScreenAlvuelo = () => {
   return (
     <View style={styles.container}>
       <Image 
-        source={require('../../assets/images/logo.png')} // Asegúrate de que esta ruta sea correcta
+        source={require('../assets/images/logo.png')} // Asegúrate de que esta ruta sea correcta
         style={styles.logo} 
       />
       <Text style={styles.appName}>¡Todo lo que necesitas en un solo lugar!</Text>

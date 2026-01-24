@@ -3,7 +3,7 @@
 import colors from '@/constants/colors';
 import Sizes from '@/constants/Sizes';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
@@ -110,11 +110,7 @@ const AdressesScreen = () => {
     const router = useRouter(); 
     const [addresses, setAddresses] = useState<Address[]>(MOCK_ADDRESSES);
 
-    // Lógica para ir a la pantalla de mapa para agregar una nueva dirección
-    const handleAddNew = () => {
-        // 💡 Ajusta esta ruta a tu componente de mapa (ej: /profile/addresses/map)
-        router.push('/adresses/map'); 
-    };
+  
 
     // Lógica para ir a la pantalla de mapa para editar una dirección existente
     const handleEdit = (id: string) => {
@@ -146,25 +142,7 @@ const AdressesScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Stack.Screen
-                options={{
-                    title: 'Mis Direcciones',
-                    headerStyle: { backgroundColor: colors.white },
-                    headerShadowVisible: true,
-                    // 💡 FUNCIÓN DE REGRESO USANDO router.back()
-                    headerLeft: () => (
-                        <TouchableOpacity onPress={() => router.replace('/Profile')} style={{ marginLeft: Sizes.smallPadding / 2 }}>
-                            <Ionicons name="arrow-back" size={24} color={colors.text} />
-                        </TouchableOpacity>
-                    ),
-                    // 💡 BOTÓN DE AGREGAR EN EL HEADER DERECHO
-                    headerRight: () => (
-                        <TouchableOpacity onPress={handleAddNew} style={{ marginRight: Sizes.smallPadding / 2 }}>
-                            <Ionicons name="add-circle" size={30} color={colors.primary} />
-                        </TouchableOpacity>
-                    ),
-                }}
-            />
+           
             
             {/* 1. Lista de Direcciones */}
             <FlatList

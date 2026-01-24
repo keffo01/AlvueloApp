@@ -45,13 +45,8 @@ const AddressForm: React.FC<AddressFormProps> = ({ initialAddress, onCancel, onS
 
     // TODO: Aquí iría la lógica real para persistir la dirección 
     // (Ej: llamar a una API o guardar en AsyncStorage/Redux)
-    Alert.alert('¡Guardado!', `La dirección "${addressName}" ha sido guardada.`);
-    
-    // 3. Volver a la pantalla anterior o cerrar el modal
-    onCancel(); 
-
-    // redirigimos al perfil o lista de direcciones
-    router.replace('/(drawer)/Profile');
+    //Alert.alert('¡Guardado!', `La dirección "${addressName}" ha sido guardada.`);
+  
   };
 
   return (

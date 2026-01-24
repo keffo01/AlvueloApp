@@ -1,9 +1,9 @@
 // app/establishment/[id].tsx
 
-import CartIcon from '@/compoents/CartIcon';
-import ReviewsTab from '@/compoents/stablishment/ReviewTab';
-import InfoTab from '@/compoents/view/InfoTab';
-import ProductsTab from '@/compoents/view/ProductsTab';
+import CartIcon from '@/components/CartIcon';
+import ReviewsTab from '@/components/stablishment/ReviewTab';
+import InfoTab from '@/components/view/InfoTab';
+import ProductsTab from '@/components/view/ProductsTab';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';

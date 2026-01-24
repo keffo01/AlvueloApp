@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import ProductCard from '../compoents/HomeScreen/ProductCard'; // Importa la tarjeta individual
+import ProductCard from '../components/HomeScreen/ProductCard'; // Importa la tarjeta individual
 import Sizes from '../constants/Sizes';
 import { Product } from '../models/commons.model';
 

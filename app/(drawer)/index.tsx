@@ -9,11 +9,11 @@ import Sizes from '../../constants/Sizes';
 import { MOCK_BANNERS, MOCK_ESTABLISHMENTS, MOCK_OPTIONS, MOCK_PRODUCTS } from '../../constants/mockData';
 
 // Importar los componentes de sección
-import ProductCarousel from '@/compoents/ProductCarousel';
-import HomeSearchInput from '@/compoents/search/HomeSearchInput';
-import BannerSlider from '../../compoents/HomeScreen/BannerSlider';
-import EstablishmentCard from '../../compoents/HomeScreen/EstablishmentCard';
-import QuickOptions from '../../compoents/HomeScreen/QuickOption';
+import ProductCarousel from '@/components/ProductCarousel';
+import HomeSearchInput from '@/components/search/HomeSearchInput';
+import BannerSlider from '../../components/HomeScreen/BannerSlider';
+import EstablishmentCard from '../../components/HomeScreen/EstablishmentCard';
+import QuickOptions from '../../components/HomeScreen/QuickOption';
 
 // Componente para títulos de sección (reusable)
 const SectionTitle: React.FC<{ title: string }> = ({ title }) => (

@@ -1,15 +1,17 @@
 // app/(drawer)/profile/index.tsx
 
+import { useAuth } from '@/context/authContext';
 import { Stack, useRouter } from 'expo-router'; // 💡 Añadir useRouter para la navegación
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // 💡 Añadir View y Text
-import ProfileOption from '../../compoents/profile/options'; // 💡 Importar el nuevo componente
-import ProfileHeader from '../../compoents/profile/profileHeader'; // 💡 Importar el componente del encabezado
+import ProfileOption from '../../components/profile/options'; // 💡 Importar el nuevo componente
+import ProfileHeader from '../../components/profile/profileHeader'; // 💡 Importar el componente del encabezado
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
 const ProfileScreen: React.FC = () => {
   const router = useRouter(); // Inicializar router
+  const { logout } = useAuth();
 
   // Simulación de navegación
   const handleNavigation = (path: any) => {
@@ -20,8 +22,8 @@ const ProfileScreen: React.FC = () => {
   
   // Lista de opciones para el menú
   const ACCOUNT_OPTIONS = [
-    { iconName: 'location-outline', title: 'Mis Direcciones', onPress: () => handleNavigation('/adresses') },
-    { iconName: 'notifications-outline', title: 'Notificaciones', onPress: () => handleNavigation('notifications') },
+    { iconName: 'location-outline', title: 'Mis Direcciones', onPress: () => handleNavigation('/addresses') },
+    { iconName: 'notifications-outline', title: 'Notificaciones', onPress: () => handleNavigation('/notifications') },
   ];
 
   const GENERAL_OPTIONS = [
@@ -31,7 +33,7 @@ const ProfileScreen: React.FC = () => {
 
   const handleLogout = () => {
     // 💡 Lógica real: Limpiar el contexto de autenticación, etc.
-    alert('Cerrando Sesión...');
+    logout();
     // router.replace('/'); // Redirigir a la pantalla de inicio de sesión o bienvenida
   };
 

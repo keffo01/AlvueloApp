@@ -1,10 +1,10 @@
 // app/(drawer)/_layout.tsx
 
-import CartIcon from '@/compoents/CartIcon';
+import CartIcon from '@/components/CartIcon';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Drawer } from 'expo-router/drawer';
 import React from 'react';
-import CustomDrawerContent from '../../compoents/navigation/CustomDrawerContent'; // 💡 Asegúrate que la ruta sea correcta
+import CustomDrawerContent from '../../components/navigation/CustomDrawerContent'; // 💡 Asegúrate que la ruta sea correcta
 import Colors from '../../constants/colors'; // 💡 Importamos las constantes
 
 // NOTA: Para que el botón de cerrar sesión funcione, 
@@ -21,11 +21,6 @@ export default function DrawerLayout() {
         headerShown: true, // Mostrar el header con el botón de menú
       }}
     >
-      {/* AQUÍ DEFINES CADA RUTA. EL NOMBRE DEL ARCHIVO ES EL NOMBRE DE LA RUTA.
-      */}
-      
-      {/* El archivo index.tsx en esta carpeta es la ruta por defecto (la Home)
-      */}
       <Drawer.Screen
         name="index" // Corresponde a app/(drawer)/index.tsx (Tu HomeScreen)
         options={{
@@ -37,8 +32,6 @@ export default function DrawerLayout() {
         }}
       />
       
-      {/* Ejemplo de otra pantalla (app/(drawer)/profile.tsx)
-      */}
       <Drawer.Screen
         name="Profile" // Corresponde a app/(drawer)/profile.tsx
         options={{
@@ -49,10 +42,6 @@ export default function DrawerLayout() {
            headerRight: () => <CartIcon />, 
         }}
       />
-      
-      {/* Puedes usar `<Drawer.Screen name="..." options={{ drawerItemStyle: { height: 0 } }} />`
-          para ocultar rutas del drawer si son solo un Stack dentro del Drawer.
-      */}
     </Drawer>
   );
 }
