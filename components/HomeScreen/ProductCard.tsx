@@ -60,7 +60,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, del
           product={product} 
           onClose={handleCloseModal} 
           deliveryCost={deliveryCost}
-          establishmentId={establishmentId}
+          establishmentId={product.establishment.id}
         />
       </Modal>
     </>

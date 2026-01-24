@@ -17,7 +17,6 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, deliveryCost }) => {
    const [isModalVisible, setIsModalVisible] = useState(false);
-  console.log("RENDERIZANDO PRODUCT CARD CON ESTABLISHMENT ID:", establishmentId);
 
  const handleOpenModal = () => {
     setIsModalVisible(true);
