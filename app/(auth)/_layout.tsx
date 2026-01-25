@@ -11,6 +11,7 @@ export default function AuthLayout() {
       {/* Solo componentes Screen aquí adentro */}
       <Stack.Screen name="index" />       {/* Esto corresponde a login */}
       <Stack.Screen name="register" />    {/* Esto corresponde a registerScreen.tsx (si ya lo renombraste) */}
+      
     </Stack>
   );
 }

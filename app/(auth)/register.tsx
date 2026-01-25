@@ -1,12 +1,15 @@
 import colors from '@/constants/colors';
 import Sizes from '@/constants/Sizes';
 import { useAuth } from '@/context/authContext';
+import { AuthService } from '@/services/auth.service';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
+  const [nickName, setNickName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { setToken } = useAuth();
@@ -15,36 +18,34 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
      setLoading(true);
     try {
-          const payload = { email: email.trim(), password: password };
+          const payload = { 
+            email: email.trim(), 
+            nickName: nickName.trim(),
+            phoneNumber: phoneNumber.trim(),
+            password: password };
 
-      const response = await fetch('https://jfzj8yx48i.execute-api.us-east-2.amazonaws.com/Dev/register', {
-        method: 'POST',
-        headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json', }, // 👈 ESTO ES VITAL
-        body: JSON.stringify(payload), // 👈 VITAL: Convertir el objeto a texto
-      });
+      const response = await AuthService.register(payload);
 
-      const data = await response.json();
-      console.log("Respuesta del registro:", JSON.stringify(data));
-    if(data.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
+      
+      console.log("Respuesta del registro:", JSON.stringify(response));
+    if(response.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
 
-    if(data.statusCode == 409){
+    if(response.statusCode == 409){
       setLoading(false);
       return Alert.alert("Warning", "email registrado"); 
 }
-    if(data.statusCode == 500){
+    if(response.statusCode == 500){
       setLoading(false);
       return Alert.alert("Network", "Error del servidor");
 }
 
-    if(data.statusCode == 201){
-      await setToken(data.token);
+    if(response.statusCode == 201){
+      await setToken(response.token);
         // CHALLENGE 1: Redirigir al mapa inmediatamente
         Alert.alert("¡Bienvenido!", "Por favor, registra tu dirección inicial.");
-        router.replace('/adresses/map'); 
+        router.replace('/addresses/map'); 
       } else {
-        Alert.alert("Error", data.message);
+        Alert.alert("Error", response.message);
       }
     } catch (error) {
       Alert.alert("Error", "No se pudo conectar con el servidor.");
@@ -54,8 +55,26 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
+            <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
+      
       <Text style={styles.title}>¡Bienvenido!</Text>
       
+      <TextInput
+        placeholder="Nombre de usuario"
+        style={styles.input}
+        value={nickName}
+        onChangeText={setNickName}
+        autoCapitalize= "words"
+        
+      />
+      <TextInput
+        placeholder="Número de teléfono"
+        style={styles.input}
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+        autoCapitalize="none"
+        keyboardType="phone-pad"
+      />
       <TextInput
         placeholder="Correo electrónico"
         style={styles.input}
@@ -140,5 +159,11 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: 'bold',
     fontSize: Sizes.font,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    alignSelf: 'center',
+    marginBottom: 30,
   },
 });

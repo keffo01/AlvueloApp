@@ -11,6 +11,7 @@ import Sizes from '../../constants/Sizes';
 
 // Importa el componente (manteniendo tu ruta, aunque 'compoents' puede ser un typo)
 import { useAuth } from '@/context/authContext';
+import { UserService } from '@/services/user.service';
 import AddressForm from '../../components/profile/adressForm';
 
 // Definiciones de tipos (Se asume que están correctas)
@@ -151,23 +152,9 @@ const AddressesScreen: React.FC = () => {
     const email = atob(userToken || ''); // Decodificar el email del token almacenado
     try {
       // 1. Llamada a tu API Gateway (Lambda de updateAddress)
-      const response = await fetch('https://jfzj8yx48i.execute-api.us-east-2.amazonaws.com/Dev/update-address', {
-        method: 'POST',
-         headers: {
-      'Content-Type': 'application/json', }, // 👈 ESTO ES VITAL
-        body: JSON.stringify({
-          email: email,
-          hasAddress : true, // O el identificador que uses en Dynamo
-          addressData: {
-            ...finalAddress,
-            id: Date.now().toString(), // Generamos un ID si es nueva
-          }
-        }),
-      });
-      const responseData = await response.json();
-      console.log("Respuesta de update-address:", responseData);
-        console.log("Statud code :",responseData.statusCode);
-
+      const response = await UserService.updateAddress(email, finalAddress, true);
+      const responseData = await response;
+      console.log("Respuesta de updateAddress:", JSON.stringify(responseData));
       if(responseData.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
       if(responseData.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
 
@@ -175,15 +162,16 @@ const AddressesScreen: React.FC = () => {
           // marcar onboarding como completo y enviar a Home
           await completeOnboarding(); 
 
-          Alert.alert("¡Éxito!", "Tu dirección ha sido guardada. ¡Bienvenido!"); 
+          Alert.alert("¡Éxito!", "Tu dirección ha sido guardada correctamente."); 
 
           setIsFormVisible(false);
-          router.replace('/(drawer)');  
+          router.push('/addresses');  
       }
     } catch (error) {
       console.error("Error al guardar:", error);
       Alert.alert("Error", "Ocurrió un error de red.");
     } finally {
+      setIsFormVisible(false);
       setIsLoading(false);
     }
   };

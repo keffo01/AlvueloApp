@@ -2,40 +2,27 @@
 
 import colors from '@/constants/colors';
 import Sizes from '@/constants/Sizes';
+import { useAuth } from '@/context/authContext';
+import { UserService } from '@/services/user.service';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 // --- Datos de Simulación ---
 interface Address {
     id: string;
-    label: string;
+    name: string;
     fullAddress: string;
     reference: string;
+    latitude: number;
+    longitude: number;
+    label: string;
     coords: {
         latitude: number;
         longitude: number;
     };
 }
-
-// Datos de ejemplo con coordenadas reales para el mapa
-const MOCK_ADDRESSES: Address[] = [
-    {
-        id: '1',
-        label: 'Casa',
-        fullAddress: 'Avenida La Palma, Colonia San Benito, San Salvador',
-        reference: 'Frente a la embajada.',
-        coords: { latitude: 13.7011, longitude: -89.2223 },
-    },
-    {
-        id: '2',
-        label: 'Oficina',
-        fullAddress: 'Calle El Mirador, Edificio World Trade Center',
-        reference: 'Piso 15, recepción.',
-        coords: { latitude: 13.6925, longitude: -89.2435 },
-    },
-];
 // ----------------------------
 
 // 💡 Componente de Elemento de Dirección
@@ -44,10 +31,14 @@ const AddressItem: React.FC<{ address: Address, onEdit: (id: string) => void, on
 
     // Región para el mapa de previsualización
     const mapRegion: Region = {
-        latitude: address.coords.latitude,
-        longitude: address.coords.longitude,
+       latitude: address?.latitude || 0,
+        longitude: address?.longitude || 0,
         latitudeDelta: 0.005,
         longitudeDelta: 0.005,
+    };
+    const coords = {
+        latitude: address?.latitude || 0,
+        longitude: address?.longitude || 0,
     };
 
     return (
@@ -59,7 +50,7 @@ const AddressItem: React.FC<{ address: Address, onEdit: (id: string) => void, on
             >
                 <View style={styles.labelContainer}>
                     <Ionicons name="location-sharp" size={20} color={colors.primary} />
-                    <Text style={styles.label}>{address.label}</Text>
+                    <Text style={styles.label}>{address.name}</Text>
                 </View>
                 <Ionicons 
                     name={isMapVisible ? 'chevron-up' : 'chevron-down'} 
@@ -83,7 +74,7 @@ const AddressItem: React.FC<{ address: Address, onEdit: (id: string) => void, on
                         scrollEnabled={false}
                         zoomEnabled={false}
                     >
-                        <Marker coordinate={address.coords} pinColor={colors.primary} />
+                        <Marker coordinate={coords} pinColor={colors.primary} />
                     </MapView>
 
                     {/* Botones de Acción */}
@@ -106,38 +97,50 @@ const AddressItem: React.FC<{ address: Address, onEdit: (id: string) => void, on
 // ----------------------------------------------------------------------
 
 const AdressesScreen = () => {
-    // 💡 Inicializar el router dentro del componente
-    const router = useRouter(); 
-    const [addresses, setAddresses] = useState<Address[]>(MOCK_ADDRESSES);
+  const { userToken } = useAuth();
+    const router = useRouter();
+    const [addresses, setAddresses] = useState<Address[]>([]);
+    const [loading, setLoading] = useState(true);
 
-  
+ // Dentro de AddressesScreen
+const loadUserAddresses = async () => {
+    try {
+        setLoading(true);
+        const email = atob(userToken || '');
+        const data = await UserService.getProfile(email);
+        setAddresses(data.addressData || []);
+    } catch (error: any) {
+        Alert.alert("Error", error.message);
+    } finally {
+        setLoading(false);
+    }
+};
 
-    // Lógica para ir a la pantalla de mapa para editar una dirección existente
-    const handleEdit = (id: string) => {
-        const addressToEdit = addresses.find(a => a.id === id);
-        if (addressToEdit) {
-            // 💡 Puedes pasar el ID o la data a la ruta del mapa para precargar
-            router.push(`/profile/addresses/create?id=${id}`); 
-        }
-    };
+    useFocusEffect(
+        useCallback(() => {
+            loadUserAddresses();
+        }, [userToken])
+    );
 
-    // Lógica de eliminación
-    const handleDelete = (id: string) => {
-        Alert.alert(
-            'Confirmar Eliminación',
-            '¿Estás seguro de que quieres eliminar esta dirección?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                { 
-                    text: 'Eliminar', 
-                    style: 'destructive', 
-                    onPress: () => {
-                        setAddresses(prev => prev.filter(a => a.id !== id));
-                    }
-                },
-            ]
+const handleDelete = async (id: string) => {
+    // ... lógica de confirmación ...
+    const email = atob(userToken || '');
+    const updatedList = addresses.filter(a => a.id !== id);
+    
+    try {
+        await UserService.deleteAddress(email, updatedList);
+        setAddresses(updatedList);
+    } catch (error) {
+        Alert.alert("Error", "No se pudo borrar");
+    }
+};
+    if (loading) {
+        return (
+            <View style={styles.loader}>
+                <ActivityIndicator size="large" color="#00D1B2" />
+            </View>
         );
-    };
+    }
 
 
     return (
@@ -147,12 +150,12 @@ const AdressesScreen = () => {
             {/* 1. Lista de Direcciones */}
             <FlatList
                 data={addresses}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item, index) => item.id?.toString() || index.toString()}
                 contentContainerStyle={styles.listContent}
                 renderItem={({ item }) => (
                     <AddressItem 
                         address={item} 
-                        onEdit={handleEdit} 
+                        onEdit={(id) => router.push(`/addresses/map?id=${id}`)} 
                         onDelete={handleDelete} 
                     />
                 )}
@@ -173,6 +176,8 @@ export default AdressesScreen;
 // ----------------------------------------------------------------------
 
 const styles = StyleSheet.create({
+    loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    emptyContainer: { alignItems: 'center', marginTop: 50 },
     container: {
         flex: 1,
         backgroundColor: colors.background,
