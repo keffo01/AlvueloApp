@@ -12,7 +12,7 @@ export default function RegisterScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setToken } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleRegister = async () => {
@@ -38,15 +38,17 @@ export default function RegisterScreen() {
       setLoading(false);
       return Alert.alert("Network", "Error del servidor");
 }
-
-    if(response.statusCode == 201){
-      await setToken(response.token);
-        // CHALLENGE 1: Redirigir al mapa inmediatamente
-        Alert.alert("¡Bienvenido!", "Por favor, registra tu dirección inicial.");
-        router.replace('/addresses/map'); 
-      } else {
-        Alert.alert("Error", response.message);
-      }
+     if (response.statusCode === 201) {
+    // 💡 IMPORTANTE: Usa login en lugar de setToken
+    // Esto marcará isNewUser como true en el estado global
+    await login(response.token, true); 
+    
+    // El useEffect de MainNavigation detectará el cambio y 
+    // te moverá automáticamente al mapa.
+    Alert.alert("¡Bienvenido!", "Por favor, registra tu dirección inicial.");
+} else {
+            Alert.alert("Error", response.message || "No se pudo crear la cuenta");
+        }
     } catch (error) {
       Alert.alert("Error", "No se pudo conectar con el servidor.");
       console.error(error);

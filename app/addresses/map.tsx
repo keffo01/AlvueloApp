@@ -2,7 +2,7 @@
 
 import Ionicons from '@expo/vector-icons/Ionicons'; // 💡 NUEVO
 import * as Location from 'expo-location';
-import { router, Stack } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react'; // 💡 Añadir useRef
 import { ActivityIndicator, Alert, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { LatLng, Marker, Region } from 'react-native-maps';
@@ -34,10 +34,18 @@ const FALLBACK_LOCATION: Region = {
 
 
 const AddressesScreen: React.FC = () => {
+  const params = useLocalSearchParams();
   const [initialRegion, setInitialRegion] = useState<any>(null);
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { userToken, isNewUser, completeOnboarding } = useAuth(); // 👈 Obtenemos el estado global
+  const { userData, completeOnboarding } = useAuth(); // 👈 Obtenemos el estado global
+  const [markerPosition, setMarkerPosition] = useState({
+    latitude: params.latitude ? parseFloat(params.latitude as string) : 13.6929,
+    longitude: params.longitude ? parseFloat(params.longitude as string) : -89.2182,
+  });
+  const [label, setLabel] = useState((params.label as string) || "");
+  const [fullAddress, setFullAddress] = useState((params.fullAddress as string) || "");
+  const [reference, setReference] = useState((params.reference as string) || "");
 
   // Estado para el formulario
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -149,16 +157,37 @@ const AddressesScreen: React.FC = () => {
  // 💡 ACTUALIZACIÓN: Función para guardar en DynamoDB
   const handleSaveFinalAddress = async (finalAddress: any) => {
     setIsLoading(true);
-    const email = atob(userToken || ''); // Decodificar el email del token almacenado
+    const email = userData?.email || ''; // Aseguramos que email sea un string, aunque userData sea null
     try {
       // 1. Llamada a tu API Gateway (Lambda de updateAddress)
-      const response = await UserService.updateAddress(email, finalAddress, true);
-      const responseData = await response;
-      console.log("Respuesta de updateAddress:", JSON.stringify(responseData));
-      if(responseData.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
-      if(responseData.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
+      
+      const profile = await UserService.getProfile(email);
+      let currentAddresses = Array.isArray(profile.addressData) ? profile.addressData : [];
 
-      if (responseData.statusCode === 200) {
+ const updatedAddress = {
+    id: params.id || Date.now().toString(),
+    label,
+    fullAddress,
+    reference,
+    coords: markerPosition
+  };
+
+  if (params.isEditing === "true") {
+    // 2. Reemplazar el elemento existente
+    currentAddresses = currentAddresses.map((addr: { id: string | string[]; }) => 
+      addr.id === params.id ? updatedAddress : addr
+    );
+  } else {
+    // 3. Agregar nuevo (si no estamos editando)
+    currentAddresses.push(updatedAddress);
+  }
+  const response = await UserService.updateAddress(email, finalAddress, true);
+      console.log("Respuesta de updateAddress:", JSON.stringify(response));
+      
+      if(response.statusCode == 400){return Alert.alert("Error", "por favor vuelve a intentarlo");}
+      if(response.statusCode == 500){return Alert.alert("Network", "Error del servidor");}
+
+      if (response.statusCode === 200) {
           // marcar onboarding como completo y enviar a Home
           await completeOnboarding(); 
 

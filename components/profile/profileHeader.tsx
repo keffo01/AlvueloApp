@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 // 💡 Importar herramientas necesarias
 
+import { useAuth } from '@/context/authContext';
 import * as ImagePicker from 'expo-image-picker';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
 function ImagePickerExample() {
   const [image, setImage] = useState<string | null>(null);
+  const { userData } = useAuth(); // 💡 Accedemos a los datos del usuario desde el contexto
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library.
@@ -40,32 +42,27 @@ function ImagePickerExample() {
     <View style={styles.imgcontainer} >
       <TouchableOpacity onPress={pickImage}>
         <Image
-          source={{ uri: MOCK_USER.profilePicUrl }}
+          source={{ uri: userData?.profilePic || 'https://picsum.photos/id/237/200/200' }}
           style={styles.profileImage}
         />
       </TouchableOpacity>
     </View>
   );
 }
-// Datos simulados (MOCK)
-const MOCK_USER = {
-  name: 'Juan Pérez',
-  email: 'juan.perez@example.com',
-  // Usamos una URL inicial para simular la carga desde el backend
-  profilePicUrl: 'https://picsum.photos/id/237/200/200', 
-};
+
 
 const ProfileHeader: React.FC = () => {
+  const { userData } = useAuth(); // 💡 Accedemos a los datos del usuario desde el contexto
   return (
     <View style={styles.container}>
       {/* Foto de Perfil */}
       <ImagePickerExample />
 
       {/* Nombre del Usuario */}
-      <Text style={styles.userName}>{MOCK_USER.name}</Text>
+      <Text style={styles.userName}>{userData?.name}</Text>
 
       {/* Email del Usuario */}
-      <Text style={styles.userEmail}>{MOCK_USER.email}</Text>
+      <Text style={styles.userEmail}>{userData?.email}</Text>
     </View>
   );
 };

@@ -18,14 +18,13 @@ export default function RootLayout() {
 }
 
 function MainNavigation() {
-  const { userToken, isLoading } = useAuth();
+  // 💡 Agregamos isNewUser aquí
+  const { userToken, isNewUser, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   
-  // Estado para controlar los 2 segundos mínimos
   const [timePassed, setTimePassed] = useState(false);
 
-  // 2. Temporizador de 2 segundos
   useEffect(() => {
     const timer = setTimeout(() => {
       setTimePassed(true);
@@ -33,27 +32,27 @@ function MainNavigation() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 3. Lógica de ocultar Splash y Redirección
   useEffect(() => {
-    // Solo actuamos cuando:
-    // - El AuthContext terminó de leer el token (isLoading es false)
-    // - YA pasaron los 2 segundos (timePassed es true)
     if (!isLoading && timePassed) {
-      
-      SplashScreen.hideAsync(); // Ocultamos el Splash nativo
+      SplashScreen.hideAsync();
 
       const inAuthGroup = segments[0] === '(auth)';
 
       if (!userToken && !inAuthGroup) {
         router.replace('/(auth)');
       } else if (userToken && inAuthGroup) {
-        router.replace('/(drawer)');
+        // 💡 Lógica condicionada:
+        if (isNewUser) {
+          console.log("Detectado usuario nuevo, enviando a Mapa");
+          router.replace('/addresses/map');
+        } else {
+          console.log("Usuario existente, enviando a Home");
+          router.replace('/(drawer)');
+        }
       }
     }
-  }, [isLoading, timePassed, userToken, segments]);
+  }, [isLoading, timePassed, userToken, isNewUser, segments]); // 💡 Añadimos isNewUser a las dependencias
 
-  // 4. EL ESCUDO: Si no estamos listos, devolvemos NULL.
-  // Esto evita que se renderice el Stack de abajo y se vea el login.
   if (isLoading || !timePassed) {
     return null; 
   }
@@ -63,13 +62,7 @@ function MainNavigation() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(drawer)" />
       <Stack.Screen name="index" /> 
-      <Stack.Screen 
-    name="establishment/[id]" 
-    options={{ 
-      headerShown: true, 
-      title: 'Detalle del Local' 
-    }} 
-  />
+      {/* ... resto de pantallas */}
     </Stack>
   );
 }

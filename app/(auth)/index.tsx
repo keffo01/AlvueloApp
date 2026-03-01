@@ -35,9 +35,9 @@ export default function index() {
       await setToken(response.token);
       
       // 2. Decide la ruta basándote en isNewUser
-      if (response.isNewUser === true) {
+      if (response.isNewUser) {
         console.log("Redirigiendo a onboarding...");
-        router.push('/addresses/map');
+        router.replace('/addresses/map');
       } else {
         console.log("Redirigiendo al Home...");
         router.replace('/(drawer)');

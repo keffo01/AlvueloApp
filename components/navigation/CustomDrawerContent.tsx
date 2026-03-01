@@ -18,6 +18,7 @@ type CustomDrawerProps = DrawerContentComponentProps;
 
 const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
  const { logout } = useAuth();
+ const { userData } = useAuth();
   const handleLogout = () => {
    
     
@@ -50,8 +51,8 @@ const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
         {/* Encabezado del Drawer (Personalizado) */}
         <View style={styles.header}>
           <Ionicons name="person-circle-outline" size={70} color={Colors.primary} />
-          <Text style={styles.userName}>Hola, { 'Usuario' }</Text>
-          <Text style={styles.userEmail}>usuario@example.com</Text>
+          <Text style={styles.userName}>Hola, { userData?.name || 'Usuario' }</Text>
+          <Text style={styles.userEmail}>{userData?.email || 'Sin correo'}</Text>
         </View>
 
         {/* Links de navegación estándar (Home, Profile, etc.) */}

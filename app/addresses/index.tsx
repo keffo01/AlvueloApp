@@ -97,7 +97,7 @@ const AddressItem: React.FC<{ address: Address, onEdit: (id: string) => void, on
 // ----------------------------------------------------------------------
 
 const AdressesScreen = () => {
-  const { userToken } = useAuth();
+  const { userData } = useAuth();
     const router = useRouter();
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loading, setLoading] = useState(true);
@@ -106,7 +106,7 @@ const AdressesScreen = () => {
 const loadUserAddresses = async () => {
     try {
         setLoading(true);
-        const email = atob(userToken || '');
+        const email = userData?.email || '';
         const data = await UserService.getProfile(email);
         setAddresses(data.addressData || []);
     } catch (error: any) {
@@ -119,19 +119,49 @@ const loadUserAddresses = async () => {
     useFocusEffect(
         useCallback(() => {
             loadUserAddresses();
-        }, [userToken])
+        }, [userData])
     );
 
+const handleEdit = (address: Address) => {
+  router.push({
+    pathname: "/addresses/map",
+    params: {
+      id: address.id,
+      label: address.label,
+      fullAddress: address.fullAddress,
+      reference: address.reference,
+      latitude: address.coords.latitude.toString(),
+      longitude: address.coords.longitude.toString(),
+      isEditing: "true" // Bandera para saber que no es una creación nueva
+    }
+  });
+};
 const handleDelete = async (id: string) => {
-    // ... lógica de confirmación ...
-    const email = atob(userToken || '');
-    const updatedList = addresses.filter(a => a.id !== id);
+    const email = userData?.email || '';
     
+    console.log("Intentando borrar ID:", id);
+    console.log("IDs actuales en la lista:", addresses.map(a => a.id));
+
+    // El filtro
+    const updatedList = addresses.filter(a => String(a.id) !== String(id));
+
+    // Si tenías 2 y ahora tienes 0, es que los IDs están duplicados
+    if (addresses.length > 1 && updatedList.length === 0) {
+        Alert.alert(
+            "Error de Datos", 
+            "No se puede borrar porque las direcciones tienen IDs duplicados. Por favor, actualiza la lista o recrea las direcciones."
+        );
+        return;
+    }
+
     try {
+        setLoading(true);
         await UserService.deleteAddress(email, updatedList);
         setAddresses(updatedList);
     } catch (error) {
-        Alert.alert("Error", "No se pudo borrar");
+        Alert.alert("Error", "No se pudo actualizar en el servidor");
+    } finally {
+        setLoading(false);
     }
 };
     if (loading) {
@@ -156,7 +186,7 @@ const handleDelete = async (id: string) => {
                     <AddressItem 
                         address={item} 
                         onEdit={(id) => router.push(`/addresses/map?id=${id}`)} 
-                        onDelete={handleDelete} 
+                        onDelete={(id) => handleDelete(id)} 
                     />
                 )}
                 ListEmptyComponent={<Text style={styles.emptyText}>Aún no tienes direcciones guardadas. ¡Agrega una!</Text>}

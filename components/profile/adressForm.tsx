@@ -31,6 +31,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ initialAddress, onCancel, onS
 
     // 1. Crear el objeto final de la dirección
     const finalAddress = {
+      id: Date.now().toString(), // Generamos un ID temporal, en la API se reemplazará por el real
       name: addressName.trim(),
       latitude: initialAddress.latitude,
       longitude: initialAddress.longitude,

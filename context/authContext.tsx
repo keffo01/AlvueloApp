@@ -1,9 +1,18 @@
 // context/authContext.tsx
 import * as SecureStore from 'expo-secure-store';
+import { jwtDecode } from "jwt-decode"; // Necesitas instalar esta librería
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
+interface UserData {
+  email: string;
+  name: string;
+  phone: string;
+  profilePic: string;
+}
 
 interface AuthContextType {
   userToken: string | null;
+  userData: UserData | null;
   isNewUser: boolean;
   isLoading: boolean;
   setToken: (token: string) => Promise<void>;
@@ -16,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userToken, setUserToken] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // 👈 Importante para evitar parpadeos
 
@@ -26,6 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const token = await SecureStore.getItemAsync('userToken');
         if (token) {
           setUserToken(token);
+          processToken(token); // 👈 Decodificamos y guardamos datos
         }
       } catch (e) {
         console.error("Error cargando el token", e);
@@ -37,10 +48,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadToken();
   }, []);
 
+  // Función interna para procesar el token
+  const processToken = (token: string) => {
+    try {
+      const decoded: any = jwtDecode(token);
+      setUserToken(token);
+      setUserData({
+        email: decoded.email,
+        name: decoded.name,
+        phone: decoded.phone,
+        profilePic: decoded.profilePic
+      });
+    } catch (error) {
+      console.error("Error al decodificar el JWT", error);
+    }
+  };
+
   const login = async (token: string, isNew: boolean) => {
     await SecureStore.setItemAsync('userToken', String(token));
     console.log("Token guardado:", token);
     setUserToken(token);
+    processToken(token); // 👈 Decodificamos y guardamos datos
     setIsNewUser(isNew);
   };
 const setToken = async (token: string) => {
@@ -56,7 +84,7 @@ const logout = async () => {
   const completeOnboarding = () => setIsNewUser(false);
 
   return (
-    <AuthContext.Provider value={{ isLoading, userToken, isNewUser, login, setToken, logout, completeOnboarding }}>
+    <AuthContext.Provider value={{ isLoading, userToken, userData, isNewUser, login, setToken, logout, completeOnboarding }}>
       {children}
     </AuthContext.Provider>
   );
