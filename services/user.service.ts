@@ -36,6 +36,7 @@ export const UserService = {
    * @param base64Image Imagen en formato data:image/jpeg;base64,...
    */
   uploadProfilePicture: async (email: string, base64Image: string) => {
+
    try {
     // Si 'apiRequest' es tu función personalizada que ya maneja errores y JSON:
     const data = await profileRequest('/upload-profile-pic', {
@@ -43,11 +44,18 @@ export const UserService = {
       body: JSON.stringify({ email, image: base64Image }),
     });
 
+    console.log("🔥 Respuesta RAW de API Gateway:", data);
+
+    if (!data || !data.profilePic) {
+      throw new Error("Respuesta inesperada del servidor");
+    }
     // 'data' ya es el JSON, no hagas data.json()
     return data; 
+
   } catch (error) {
     console.error("Error en el servicio:", error);
     throw error;
   }
+
   }
 };

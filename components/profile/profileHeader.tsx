@@ -26,7 +26,7 @@ function ImagePickerExample() {
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1], // 💡 1:1 es mejor para fotos de perfil redondas
-      quality: 0.5,   // 💡 Reducimos calidad para que el base64 no sea gigante
+      quality: 0.1,   // 💡 Reducimos calidad para que el base64 no sea gigante
       base64: true,   // 💡 ¡CRUCIAL! Pedimos la imagen en formato texto
     });
 
@@ -37,7 +37,6 @@ function ImagePickerExample() {
       // 2. Preparar el base64 para enviar
       const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
       const email = userData?.email || '';
-
       // 3. Subir al servidor
       try {
         setIsUploading(true);
