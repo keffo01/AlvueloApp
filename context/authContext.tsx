@@ -7,7 +7,7 @@ interface UserData {
   email: string;
   name: string;
   phone: string;
-  profilePic: string;
+  photoProfile: string;
 }
 
 interface AuthContextType {
@@ -18,6 +18,7 @@ interface AuthContextType {
   setToken: (token: string) => Promise<void>;
   login: (token: string, isNew: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserData: (newData: Partial<UserData>) => void; // 💡 Nueva función
   completeOnboarding: () => void;
 }
 
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: decoded.email,
         name: decoded.name,
         phone: decoded.phone,
-        profilePic: decoded.profilePic
+        photoProfile: decoded.profilePic
       });
     } catch (error) {
       console.error("Error al decodificar el JWT", error);
@@ -80,11 +81,19 @@ const logout = async () => {
   await SecureStore.deleteItemAsync('userToken'); // Borra de la memoria física
   setUserToken(null); // Borra del estado global (esto disparará la navegación al Login)
 };
+// 💡 Función para actualizar datos en tiempo real
+  const updateUserData = (newData: Partial<UserData>) => {
+    setUserData((prev) => {
+      if (!prev) return null;
+      return { ...prev, ...newData }; // Mezclamos los datos viejos con los nuevos
+    });
+    
+  };
 
   const completeOnboarding = () => setIsNewUser(false);
 
   return (
-    <AuthContext.Provider value={{ isLoading, userToken, userData, isNewUser, login, setToken, logout, completeOnboarding }}>
+    <AuthContext.Provider value={{ isLoading, userToken, userData, isNewUser, login, setToken, logout, updateUserData, completeOnboarding }}>
       {children}
     </AuthContext.Provider>
   );

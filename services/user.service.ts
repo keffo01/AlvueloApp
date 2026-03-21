@@ -28,5 +28,26 @@ export const UserService = {
   // El borrado ahora es simple usando updateAddress enviando la lista filtrada
   deleteAddress: async (email: string, updatedList: Address[]) => {
     return UserService.updateAddress(email, updatedList, updatedList.length > 0);
+  },
+
+  /**
+   * Sube la imagen de perfil a S3 y actualiza DynamoDB
+   * @param email Correo del usuario (ID)
+   * @param base64Image Imagen en formato data:image/jpeg;base64,...
+   */
+  uploadProfilePicture: async (email: string, base64Image: string) => {
+   try {
+    // Si 'apiRequest' es tu función personalizada que ya maneja errores y JSON:
+    const data = await profileRequest('/upload-profile-pic', {
+      method: 'POST',
+      body: JSON.stringify({ email, image: base64Image }),
+    });
+
+    // 'data' ya es el JSON, no hagas data.json()
+    return data; 
+  } catch (error) {
+    console.error("Error en el servicio:", error);
+    throw error;
+  }
   }
 };
