@@ -57,5 +57,24 @@ export const UserService = {
     throw error;
   }
 
+  },
+
+  // En UserService
+updatePersonalData: async (payload: { 
+  email: string, 
+  phoneNumber: string, 
+  currentPassword?: string | null, 
+  newPassword?: string | null 
+}) => {
+  try {
+    const data = await profileRequest('/update-personal-data', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    return data;
+  } catch (error: any) {
+    // Si tu apiService lanza el error, lo capturamos aquí
+    throw new Error(error.response?.data?.message || "Error al actualizar datos");
   }
+},
 };

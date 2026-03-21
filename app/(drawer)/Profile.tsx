@@ -23,7 +23,7 @@ const ProfileScreen: React.FC = () => {
   // Lista de opciones para el menú
   const ACCOUNT_OPTIONS = [
     { iconName: 'location-outline', title: 'Mis Direcciones', onPress: () => handleNavigation('/addresses') },
-    { iconName: 'notifications-outline', title: 'Notificaciones', onPress: () => handleNavigation('/notifications') },
+    { iconName: 'person-outline', title: 'Actualizar Datos Personales', onPress: () => handleNavigation('/personal') },
   ];
 
   const GENERAL_OPTIONS = [

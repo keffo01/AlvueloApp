@@ -6,7 +6,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 interface UserData {
   email: string;
   name: string;
-  phone: string;
+  phoneNumber: string;
   photoProfile: string;
 }
 
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserData({
         email: decoded.email,
         name: decoded.name,
-        phone: decoded.phone,
+        phoneNumber: decoded.phone,
         photoProfile: decoded.profilePic
       });
     } catch (error) {

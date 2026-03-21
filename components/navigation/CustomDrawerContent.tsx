@@ -8,7 +8,7 @@ import {
   DrawerItemList
 } from '@react-navigation/drawer';
 import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
@@ -49,8 +49,13 @@ const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
       <DrawerContentScrollView {...props} contentContainerStyle={styles.scrollContainer}>
         
         {/* Encabezado del Drawer (Personalizado) */}
+        
         <View style={styles.header}>
-          <Ionicons name="person-circle-outline" size={70} color={Colors.primary} />
+          {userData?.photoProfile ? <Image
+                source={{ uri: userData?.photoProfile}}
+                style={styles.profileImage}
+              /> : <Ionicons name="person-circle-outline" size={70} color={Colors.primary} />}
+          
           <Text style={styles.userName}>Hola, { userData?.name || 'Usuario' }</Text>
           <Text style={styles.userEmail}>{userData?.email || 'Sin correo'}</Text>
         </View>
@@ -94,6 +99,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     backgroundColor: '#F7F7F7', // Un fondo diferente para el header
+  },
+  profileImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginBottom: Sizes.smallPadding,
   },
   userName: {
     fontSize: Sizes.title,
