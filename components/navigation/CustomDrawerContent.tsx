@@ -8,7 +8,7 @@ import {
   DrawerItemList
 } from '@react-navigation/drawer';
 import React from 'react';
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
@@ -71,7 +71,7 @@ const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
         
       </DrawerContentScrollView>
 
-      {/* 2. Área Fija (Botón de Cerrar Sesión) */}
+      {/* 2. Área Fija (Botón de Cerrar Sesión) }
       <View style={styles.bottomSection}>
         <TouchableOpacity 
           style={styles.logoutButton}
@@ -81,6 +81,7 @@ const CustomDrawerContent: React.FC<CustomDrawerProps> = (props) => {
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </View>
+       { */}
     </View>
   );
 };

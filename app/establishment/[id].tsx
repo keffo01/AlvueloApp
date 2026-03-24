@@ -5,19 +5,21 @@ import ReviewsTab from '@/components/stablishment/ReviewTab';
 import InfoTab from '@/components/view/InfoTab';
 import ProductsTab from '@/components/view/ProductsTab';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // 💡 NUEVO
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view'; // 💡 Nuevas importaciones
 import colors from '../../constants/colors';
 import { Establishment, MOCK_ALL_ESTABLISHMENTS, MOCK_PRODUCTS, MOCK_REVIEWS } from '../../constants/mockData';
 import Sizes from '../../constants/Sizes';
-
 const initialLayout = { width: Dimensions.get('window').width };
 
 // --- Componente de Detalle ---
 const EstablishmentDetailScreen: React.FC = () => {
+  const router = useRouter();
   const params = useLocalSearchParams();
+  const insets = useSafeAreaInsets(); // 💡
  // 💡 CORRECCIÓN CLAVE: Garantizar que 'id' es un string
   let rawId = params.id;
 
@@ -85,15 +87,21 @@ const renderScene = SceneMap({
   return (
     <View style={styles.container}>
       {/* 💡 Cabecera Transparente */}
-      <Stack.Screen 
-        options={{
-          title: '', 
-          headerTransparent: true,
-          headerTintColor: '#ffffff',
-            // 💡 AGREGAMOS EL BOTÓN DEL CARRITO AL HEADER DERECHO
-          headerRight: () => <CartIcon />,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }}/>
+      {/* 2. NUESTRO HEADER FLOTANTE ABSOLUTO */}
+      <View style={[styles.customHeader, { top: insets.top > 0 ? insets.top : 20 }]}>
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={styles.headerButtonCircle}
+        >
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+
+        <View >
+          {/* 💡 Agregamos el ícono del carrito en la parte derecha del header */}
+          <CartIcon />
+        </View>
+      </View>
       
       <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}> 
         {/* 1. Imagen Extensible y Datos Principales */}
@@ -159,6 +167,7 @@ const styles = StyleSheet.create({
     padding: Sizes.padding,
     paddingTop: Sizes.padding * 2, // Espacio interior para que el contenido no quede pegado al borde
   },
+ 
   title: {
     fontSize: 28, // Usamos un tamaño grande para el título (más grande que header/title)
     fontWeight: 'bold',
@@ -230,6 +239,32 @@ const styles = StyleSheet.create({
     fontSize: Sizes.font,
     textAlign: 'center',
     color: colors.lightText,
+  },
+  // ... tus estilos anteriores ...
+  
+  // 💡 ESTILOS DEL HEADER FLOTANTE
+  customHeader: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Sizes.padding,
+    zIndex: 100, // Obliga a estar por encima en iOS
+    elevation: 100, // Obliga a estar por encima en Android
+  },
+  headerButtonCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Blanco casi sólido
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Sombreado para que resalten más
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
 });
 
