@@ -8,6 +8,8 @@ interface UserData {
   name: string;
   phoneNumber: string;
   photoProfile: string;
+  orders: any[]; // 💡 Agregamos un campo para las órdenes del usuario
+  addresses: any[]; // 💡 Agregamos un campo para las direcciones del usuario
 }
 
 interface AuthContextType {
@@ -58,7 +60,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: decoded.email,
         name: decoded.name,
         phoneNumber: decoded.phone,
-        photoProfile: decoded.profilePic
+        photoProfile: decoded.profilePic,
+        orders: decoded.orders || [], // 💡 Aseguramos que siempre sea un array
+        addresses: decoded.address || [], // 💡 Aseguramos que siempre sea un array
       });
     } catch (error) {
       console.error("Error al decodificar el JWT", error);
@@ -89,6 +93,7 @@ const logout = async () => {
     });
     
   };
+  
 
   const completeOnboarding = () => setIsNewUser(false);
 
@@ -104,3 +109,4 @@ export const useAuth = () => {
   if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 };
+

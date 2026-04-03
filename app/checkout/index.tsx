@@ -26,7 +26,7 @@ const MOCK_DELIVERY_COST = 1.50;
 const CheckoutScreen: React.FC = () => {
   // 1. Extraemos cartItems además de subtotal
   const { cart, subtotal, clearCart } = useCart();
-  const { userData } = useAuth();
+  const { userData, updateUserData } = useAuth();
   const navigation = useRouter();
   
   // --- ESTADOS ---
@@ -84,7 +84,7 @@ const handlePlaceOrder = async () => {
     const restaurantInfo = cart.length > 0 ? cart[0].establishment : null;
 
     // Buscamos el texto exacto de la dirección seleccionada (opcional, para guardarlo legible)
-    const fullAddress = addresses.find(a => a.id === selectedAddressId)?.details || selectedAddressId;
+    const fullAddress = addresses.find(a => a.id === selectedAddressId)?.name +' '+ addresses.find(a => a.id === selectedAddressId)?.reference || selectedAddressId;
 
     // 📦 ARMAMOS EL PAQUETE (El JSON exacto que espera la Lambda)
     const orderPayload = {
@@ -115,6 +115,17 @@ const handlePlaceOrder = async () => {
 
     // 🚀 ENVIAMOS A API GATEWAY
     const response = await orderService.createOrder(orderPayload);
+    const newOrderLocal = {
+        orderId: response.orderId,
+        createdAt: new Date().toISOString(),
+        orderStatus: "inicio",
+        orderData: orderPayload.orderData,
+        restaurantData: orderPayload.restaurantData,
+        customerData: orderPayload.customerData
+      };
+    const updatedOrders = userData?.orders ? [...userData.orders, newOrderLocal] : [newOrderLocal];
+      
+      updateUserData({ orders: updatedOrders });
 
     // Si todo sale bien...
     Alert.alert(

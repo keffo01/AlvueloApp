@@ -24,6 +24,7 @@ const ProfileScreen: React.FC = () => {
   const ACCOUNT_OPTIONS = [
     { iconName: 'location-outline', title: 'Mis Direcciones', onPress: () => handleNavigation('/addresses') },
     { iconName: 'person-outline', title: 'Actualizar Datos Personales', onPress: () => handleNavigation('/personal') },
+    { iconName: 'receipt-outline', title: 'Mis Pedidos', onPress: () => handleNavigation('/orders') },
   ];
 
   const GENERAL_OPTIONS = [
