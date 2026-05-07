@@ -1,75 +1,153 @@
 // components/QuickOptions.tsx
 
-import Ionicons from '@expo/vector-icons/Ionicons'; // Importa la librería de iconos
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
-import { QuickOption } from '../../models/commons.model';
 
-interface QuickOptionsProps {
-  options: QuickOption[];
-}
+const { width } = Dimensions.get('window');
+const GRID_PADDING = Sizes.padding;
+const GAP = 10;
+const COLUMN_WIDTH = (width - (GRID_PADDING * 2) - GAP) / 2;
 
-const OptionItem: React.FC<{ item: QuickOption }> = ({ item }) => {
+const QuickOptions: React.FC = () => {
   const navigation = useRouter();
 
-   const handlePress = () => {
-    // 💡 CAMBIO CLAVE: Usar el nombre de la ruta dinámica. 
-    // La navegación pasa el nombre como parámetro de la URL.
-    // Ej: navigation.push('Restaurantes') irá a app/[category]/index.tsx con category='Restaurantes'
-    navigation.push(item.name as any); // Usamos 'name' como la categoría a buscar
+  const handlePress = (name: string) => {
+    navigation.push(name as any);
   };
 
   return (
-    <TouchableOpacity style={styles.optionItem} onPress={handlePress}>
-      <View style={styles.iconCircle}>
-        <Ionicons name={item.iconName as any} size={Sizes.icon} color={Colors.primary} />
-      </View>
-      <Text style={styles.optionText}>{item.name}</Text>
-    </TouchableOpacity>
-  );
-};
-
-const QuickOptions: React.FC<QuickOptionsProps> = ({ options }) => {
-  return (
     <View style={styles.container}>
-      <FlatList
-        data={options}
-        renderItem={({ item }) => <OptionItem item={item} />}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      />
+      <View style={styles.grid}>
+        
+        {/* 1. BOTÓN GRANDE (Combos Especiales) - Ocupa toda la columna izquierda */}
+        <TouchableOpacity 
+          style={[styles.bigCard, { backgroundColor: '#FFF4E5' }]} 
+          onPress={() => handlePress('Combos')}
+        >
+          <View style={styles.iconCircleBig}>
+            <Ionicons name="fast-food" size={32} color="#FF8C00" />
+          </View>
+          <Text style={styles.bigCardTitle}>Combos{"\n"}Especiales</Text>
+          <Text style={styles.tagline}>Ahorra más</Text>
+        </TouchableOpacity>
+
+        <View style={styles.rightColumn}>
+          {/* 2. BOTÓN MEDIANO (Farmacia) */}
+          <TouchableOpacity 
+            style={[styles.mediumCard, { backgroundColor: '#E8F5E9' }]} 
+            onPress={() => handlePress('Farmacia')}
+          >
+            <Ionicons name="medical" size={24} color="#2E7D32" />
+            <Text style={styles.mediumCardTitle}>Farmacia</Text>
+          </TouchableOpacity>
+
+          {/* FILA DE 3 BOTONES PEQUEÑOS ABAJO */}
+          <View style={styles.smallRow}>
+             {/* 3. Restaurantes */}
+             <TouchableOpacity style={styles.smallCard} onPress={() => handlePress('Restaurantes')}>
+                <Ionicons name="restaurant" size={20} color={Colors.primary} />
+                <Text style={styles.smallCardText}>Locales</Text>
+             </TouchableOpacity>
+
+             {/* 4. Mandaditos (O similar) */}
+             <TouchableOpacity style={styles.smallCard} onPress={() => handlePress('Mandaditos')}>
+                <Ionicons name="bicycle" size={20} color={Colors.primary} />
+                <Text style={styles.smallCardText}>Envíos</Text>
+             </TouchableOpacity>
+          </View>
+          
+          {/* 5. OTRO BOTÓN MEDIANO (Supermercado / Otros) */}
+          <TouchableOpacity 
+            style={[styles.mediumCard, { backgroundColor: '#E3F2FD', marginTop: GAP }]} 
+            onPress={() => handlePress('Super')}
+          >
+            <Ionicons name="cart" size={24} color="#1565C0" />
+            <Text style={styles.mediumCardTitle}>Super</Text>
+          </TouchableOpacity>
+        </View>
+
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Sizes.padding * 1.5,
+    paddingHorizontal: GRID_PADDING,
+    marginVertical: 10,
   },
-  optionItem: {
-    alignItems: 'center',
-    width: 80, // Ancho fijo para cada item
-    marginRight: Sizes.smallPadding,
+  grid: {
+    flexDirection: 'row',
+    height: 220, // Altura fija para el rompecabezas
   },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#F3F4F6', // Un gris muy claro
+  // --- CARD GRANDE ---
+  bigCard: {
+    width: COLUMN_WIDTH,
+    height: '100%',
+    borderRadius: 20,
+    padding: 15,
+    justifyContent: 'space-between',
+    marginRight: GAP,
+  },
+  iconCircleBig: {
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Sizes.smallPadding / 2,
   },
-  optionText: {
-    fontSize: Sizes.subtitle,
+  bigCardTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#CC7000',
+  },
+  tagline: {
+    fontSize: 12,
+    color: '#FF8C00',
+    fontWeight: '600',
+  },
+  // --- COLUMNA DERECHA ---
+  rightColumn: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  mediumCard: {
+    flex: 1,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+  },
+  mediumCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 10,
     color: Colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
   },
+  smallRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: GAP,
+    height: 70,
+  },
+  smallCard: {
+    width: '48%',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  smallCardText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: 4,
+  }
 });
 
 export default QuickOptions;

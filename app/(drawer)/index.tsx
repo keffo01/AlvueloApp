@@ -1,12 +1,12 @@
 // screens/HomeScreen.tsx
 
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
 // Importar mock data
-import { MOCK_BANNERS, MOCK_ESTABLISHMENTS, MOCK_OPTIONS, MOCK_PRODUCTS } from '../../constants/mockData';
+import { MOCK_BANNERS, MOCK_ESTABLISHMENTS, MOCK_PRODUCTS } from '../../constants/mockData';
 
 // Importar los componentes de sección
 import ProductCarousel from '@/components/ProductCarousel';
@@ -14,69 +14,127 @@ import HomeSearchInput from '@/components/search/HomeSearchInput';
 import BannerSlider from '../../components/HomeScreen/BannerSlider';
 import EstablishmentCard from '../../components/HomeScreen/EstablishmentCard';
 import QuickOptions from '../../components/HomeScreen/QuickOption';
+import { useAuth } from '../../context/authContext'; // Para obtener el nombre del usuario
 
-// Componente para títulos de sección (reusable)
-const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
-  <Text style={styles.sectionTitle}>{title}</Text>
+// Título de sección modernizado
+const SectionTitle: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
+  </View>
 );
 
 const HomeScreen = () => {
+  const { userData } = useAuth();
+  const userName = userData?.name.split(' ')[0] || 'Invitado';
+
   return (
-    // ScrollView es esencial para que todo quepa en la pantalla y se pueda desplazar
-    <ScrollView style={styles.container}>
-      {/* SECCIÓN 1: Banner Slider */}
-      <BannerSlider banners={MOCK_BANNERS} />
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView 
+        style={styles.container}
+        showsVerticalScrollIndicator={false} // Ocultar la barra para un look más limpio
+      >
+        {/* ENCABEZADO MODERNO */}
+        <View style={styles.topHeader}>
+          <Text style={styles.greeting}>Hola, {userName} 👋</Text>
+          <Text style={styles.askText}>¿Qué te llevamos hoy?</Text>
+        </View>
 
-      {/* 💡 Sección 2: Barra de Búsqueda (NUEVA) */}
-            <HomeSearchInput />
+        {/* SECCIÓN 1: Barra de Búsqueda (Subida por jerarquía) */}
+        <View style={styles.searchContainer}>
+          <HomeSearchInput />
+        </View>
 
-      {/* SECCIÓN 2: Opciones Rápidas */}
-      <SectionTitle title="Explora Categorías" />
-      <QuickOptions options={MOCK_OPTIONS} />
+        {/* SECCIÓN 2: Banner Slider */}
+        <View style={styles.bannerContainer}>
+          <BannerSlider banners={MOCK_BANNERS} />
+        </View>
 
-           {/* SECCIÓN 3: Carrusel de Productos (¡NUEVO COMPONENTE!) */}
-      <SectionTitle title="Productos Destacados" />
-      <ProductCarousel 
-        products={MOCK_PRODUCTS} 
-        interval={4500} // Ejemplo: Cada 4.5 segundos
-      />
+        {/* SECCIÓN 3: Opciones Rápidas */}
+        <View style={styles.sectionMargin}>
+          <SectionTitle title="Explora Categorías" />
+          <QuickOptions  />
+        </View>
 
-      {/* SECCIÓN 4: Restaurantes de Prestigio */}
-      <SectionTitle title="Establecimientos de Prestigio (Top Likes)" />
-      <View style={styles.establishmentList}>
-        {MOCK_ESTABLISHMENTS.map((est) => (
-          <EstablishmentCard key={est.id} establishment={est} />
-        ))}
-      </View>
-      
-      {/* Espacio extra al final para scroll */}
-      <View style={{ height: 50 }} />
-    </ScrollView>
+        {/* SECCIÓN 4: Carrusel de Productos */}
+        <View style={styles.sectionMargin}>
+          <SectionTitle 
+            title="Destacados de hoy" 
+            subtitle="Las mejores opciones elegidas para ti" 
+          />
+          <ProductCarousel 
+            products={MOCK_PRODUCTS} 
+            interval={4500} 
+          />
+        </View>
+
+        {/* SECCIÓN 5: Restaurantes */}
+        <View style={styles.sectionMargin}>
+          <SectionTitle title="Favoritos de la zona" />
+          <View style={styles.establishmentList}>
+            {MOCK_ESTABLISHMENTS.map((est) => (
+              <EstablishmentCard key={est.id} establishment={est} />
+            ))}
+          </View>
+        </View>
+        
+        <View style={{ height: 80 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#ffffff', // Fondo blanco puro para más limpieza
+  },
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+  },
+  topHeader: {
+    paddingHorizontal: Sizes.padding,
+    paddingTop: 20,
+    paddingBottom: 15,
+  },
+  greeting: {
+    fontSize: 16,
+    color: Colors.lightText,
+    marginBottom: 4,
+  },
+  askText: {
+    fontSize: 24,
+    fontWeight: '800', // Fuente más gruesa para impacto
+    color: Colors.text,
+  },
+  searchContainer: {
+    paddingHorizontal: Sizes.padding,
+    marginBottom: 20,
+    zIndex: 1, // Para que las sombras no se corten
+  },
+  bannerContainer: {
+    marginBottom: 25,
+  },
+  sectionHeader: {
+    paddingHorizontal: Sizes.padding,
+    marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: Sizes.title,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
     color: Colors.text,
-    paddingHorizontal: Sizes.padding,
-    marginBottom: Sizes.smallPadding,
-    marginTop: Sizes.smallPadding,
+    letterSpacing: -0.5, // Le da un toque más moderno a la fuente
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: Colors.lightText,
+    marginTop: 2,
   },
   sectionMargin: {
-    marginBottom: Sizes.padding,
-  },
-  horizontalListPadding: {
-    paddingHorizontal: Sizes.padding,
+    marginBottom: 30, // Más espacio entre secciones
   },
   establishmentList: {
     paddingHorizontal: Sizes.padding,
-    marginBottom: Sizes.padding * 2,
   }
 });
 

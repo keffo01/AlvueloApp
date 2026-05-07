@@ -1,11 +1,10 @@
-// components/BannerSlider.tsx (Versión Modificada)
+// components/HomeScreen/BannerSlider.tsx
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  Button,
+  Dimensions,
   FlatList,
   Image,
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,142 +12,168 @@ import {
 } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
-import { Banner } from '../../models/commons.model';
 
-// Props del componente
+// Obtenemos el ancho de la pantalla para calcular las dimensiones del banner
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Proporciones "cinematográficas": El ancho menos el padding doble, y la altura es la mitad de eso.
+const BANNER_WIDTH = SCREEN_WIDTH - (Sizes.padding * 2);
+const BANNER_HEIGHT = BANNER_WIDTH * (9 / 18); // Relación de aspecto 2:1 aproximadamente para look moderno
+
+// Interface para los datos de los mocks
+interface Banner {
+  id: string;
+  imageUri: string; // URL o require local de la imagen
+  title?: string;
+  description?: string;
+  onPress?: () => void; // Acción al tocar el banner
+}
+
 interface BannerSliderProps {
   banners: Banner[];
-  // Opcional: Propiedad para configurar el intervalo de desplazamiento (en milisegundos)
-  interval?: number; 
 }
-// aqui se controla el tiempo de duracion de cada carta del banner
-const BannerSlider: React.FC<BannerSliderProps> = ({ banners, interval = 10000 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
+
+const BannerSlider: React.FC<BannerSliderProps> = ({ banners }) => {
+  // Estado para rastrear en qué índice del slider estamos para los puntitos
+  const [currentIndex, setCurrentIndex] = useState(0);
   
-  // 💡 NUEVO: Estado para rastrear el índice del banner visible
-  const [currentIndex, setCurrentIndex] = useState(0); 
-  // 💡 NUEVO: Referencia a la FlatList para poder desplazarla
-  const flatListRef = useRef<FlatList<Banner>>(null); 
+  // Referencia al FlatList (opcional por si quisieras auto-scroll)
+  const flatListRef = useRef<FlatList>(null);
 
-  // --- LÓGICA DE DESPLAZAMIENTO AUTOMÁTICO ---
-  useEffect(() => {
-    if (banners.length === 0) return;
+  // Manejador del scroll para actualizar el índice actual
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index || 0);
+    }
+  }).current;
 
-    // 1. Configurar el temporizador
-    const timer = setInterval(() => {
-      // Calcular el próximo índice
-      const nextIndex = (currentIndex + 1) % banners.length;
-      
-      // 2. Actualizar el estado y desplazar la lista
-      setCurrentIndex(nextIndex);
-      
-      // La función `scrollToIndex` mueve la lista. Usamos 'current' de la ref.
-      flatListRef.current?.scrollToIndex({ 
-        index: nextIndex, 
-        animated: true, 
-        // offset: 0, // Puedes añadir un offset si es necesario
-        // viewPosition: 0.5 // Centra el elemento
-      });
-      
-    }, interval); // Usamos la propiedad 'interval' (por defecto 3000ms = 3 segundos)
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50, // Considera visible cuando el 50% de la card está en pantalla
+  }).current;
 
-    // 3. Limpiar el temporizador al desmontar el componente (CRUCIAL para evitar fugas de memoria)
-    return () => clearInterval(timer);
-    
-  }, [currentIndex, banners.length, interval]); // Dependencias: se ejecuta cada vez que cambia el índice
-
-  // --- LÓGICA DE MANEJO DE BANNER ---
-  const handleBannerPress = (banner: Banner) => {
-    setSelectedBanner(banner);
-    setModalVisible(true);
+  // Renderizador de cada ítem (banner)
+  const renderItem = ({ item }: { item: Banner }) => {
+    return (
+      <TouchableOpacity 
+        style={styles.cardContainer} 
+        onPress={item.onPress} 
+        activeOpacity={0.9}
+      >
+        <Image 
+          source={typeof item.imageUri === 'string' ? { uri: item.imageUri } : item.imageUri} 
+          style={styles.image} 
+          resizeMode="cover" // Importante: Corta y llena sin deformar
+        />
+        {/* Superposición sutil de texto (Opcional, si tus banners traen texto) */}
+        {(item.title || item.description) && (
+          <View style={styles.textOverlay}>
+            {item.title && <Text style={styles.bannerTitle}>{item.title}</Text>}
+            {item.description && <Text style={styles.bannerDesc}>{item.description}</Text>}
+          </View>
+        )}
+      </TouchableOpacity>
+    );
   };
 
-  const renderBannerItem = ({ item }: { item: Banner }) => (
-    <TouchableOpacity 
-      style={styles.bannerContainer}
-      onPress={() => handleBannerPress(item)}
-      activeOpacity={0.8}
-    >
-      <Image source={{ uri: item.imageUri }} style={styles.image} />
-    </TouchableOpacity>
-  );
-
   return (
-    <View style={styles.container}>
+    <View style={styles.mainContainer}>
       <FlatList
-        ref={flatListRef} // 💡 Asignamos la referencia
+        ref={flatListRef}
         data={banners}
-        renderItem={renderBannerItem}
-        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
         horizontal
+        pagingEnabled // Fundamental para que se deslice de uno en uno
         showsHorizontalScrollIndicator={false}
-        // Desactivamos snapToInterval para evitar conflictos con el scroll automático.
-        // snapToInterval={300 + Sizes.smallPadding} 
-        // decelerationRate="fast"
+        snapToInterval={SCREEN_WIDTH} // Alinea cada ítem al centro de la pantalla
+        decelerationRate="fast"
+        contentContainerStyle={styles.flatListContent}
+        keyExtractor={(item) => item.id}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
       />
-      {/* ... Código del Modal (sin cambios) ... */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{selectedBanner?.title}</Text>
-            <Text style={styles.modalDescription}>{selectedBanner?.description}</Text>
-            <Button title="Cerrar" onPress={() => setModalVisible(false)} color={Colors.primary} />
-          </View>
-        </View>
-      </Modal>
+      
+      {/* PAGINACIÓN (Puntitos sutiles) */}
+      <View style={styles.paginationContainer}>
+        {banners.map((_, index) => (
+          <View 
+            key={index} 
+            style={[
+              styles.paginationDot, 
+              // El puntito actual es más ancho y de color primario
+              currentIndex === index && styles.paginationDotActive
+            ]}
+          />
+        ))}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    height: 180, // Altura fija para el slider
-    marginBottom: Sizes.padding,
+  mainContainer: {
+    // Espacio vertical para que las sombras y puntitos no se corten
+    paddingVertical: 5, 
   },
-  bannerContainer: {
-    width: 360, 
-    height: 160,
-    marginRight: Sizes.smallPadding,
-    borderRadius: Sizes.radius,
-    overflow: 'hidden',
-    backgroundColor: Colors.lightText,
+  flatListContent: {
+    // Centra el primer banner ya que usamos pagingEnabled
+    alignItems: 'center', 
+  },
+  cardContainer: {
+    width: BANNER_WIDTH,
+    height: BANNER_HEIGHT,
+    borderRadius: 20, // Bordes muy redondeados para look moderno
+    backgroundColor: '#eee', // Color de fondo temporal mientras carga imagen
+    overflow: 'hidden', // Importante para que la imagen respete el radio
+    // Sombra sutil para efecto de "tarjeta"
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    // Alineación central dentro del espacio de la pantalla
+    marginHorizontal: Sizes.padding, 
   },
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
-  // Estilos del Modal
-  modalOverlay: {
-    flex: 1,
+  // Superposición opcional
+  textOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)', // Sombra sutil detrás del texto para legibilidad
+    padding: 15,
+  },
+  bannerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  bannerDesc: {
+    color: '#eee',
+    fontSize: 12,
+  },
+  // Paginación
+  paginationContainer: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo semitransparente
+    marginTop: 15, // Espacio entre el banner y los puntitos
   },
-  modalContent: {
-    width: '80%',
-    backgroundColor: Colors.background,
-    borderRadius: Sizes.radius * 2,
-    padding: Sizes.largePadding,
-    alignItems: 'center',
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#e0e0e0', // Color gris para inactivos
+    marginHorizontal: 4,
+    // Pequeña animación de transición suave si cambias el índice
   },
-  modalTitle: {
-    fontSize: Sizes.title,
-    fontWeight: 'bold',
-    marginBottom: Sizes.smallPadding,
-    color: Colors.text,
-  },
-  modalDescription: {
-    fontSize: Sizes.font,
-    textAlign: 'center',
-    marginBottom: Sizes.padding,
-    color: Colors.lightText,
+  paginationDotActive: {
+    width: 20, // Se expande horizontalmente
+    backgroundColor: Colors.primary, // Color de tu app
   },
 });
 
