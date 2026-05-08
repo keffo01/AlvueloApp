@@ -1,5 +1,3 @@
-// app/(tabs)/search/index.tsx
-
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -32,10 +30,8 @@ const SearchScreen: React.FC = () => {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
 
-  // Mock de sugerencias para cuando el usuario aún no escribe
   const recentSearches = ['Pupusas', 'Pizza', 'Farmacia', 'Aguilares centro'];
 
-  // 💡 Tu Lógica de Filtrado (Intacta)
   const { filteredEstablishments, filteredProducts } = useMemo(() => {
     if (searchText.length < 3) {
         return { filteredEstablishments: [], filteredProducts: [] }; 
@@ -85,9 +81,9 @@ const SearchScreen: React.FC = () => {
             value={searchText}
             onChangeText={setSearchText}
             autoCapitalize="none"
-            autoFocus={true} // El teclado sube automáticamente
+            autoFocus={true} 
             returnKeyType="search"
-            selectionColor={Colors.primary} // Color del cursor
+            selectionColor={Colors.primary}
           />
           
           {searchText.length > 0 && (
@@ -101,7 +97,7 @@ const SearchScreen: React.FC = () => {
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled" // Permite tocar resultados sin que el teclado bloquee el tap
+        keyboardShouldPersistTaps="handled" 
       >
         {/* 💡 VISTA INICIAL (Menos de 3 letras) */}
         {searchText.length < 3 ? (
@@ -112,7 +108,7 @@ const SearchScreen: React.FC = () => {
                   <TouchableOpacity 
                     key={index} 
                     style={styles.chip}
-                    onPress={() => setSearchText(item)} // Al tocar, busca automáticamente
+                    onPress={() => setSearchText(item)} 
                   >
                     <Ionicons name="trending-up-outline" size={16} color={Colors.lightText} />
                     <Text style={styles.chipText}>{item}</Text>
@@ -121,7 +117,7 @@ const SearchScreen: React.FC = () => {
               </View>
             </View>
         ) : (
-            /* 💡 TUS RESULTADOS (Más de 3 letras) */
+            
             <>
                 <Text style={styles.sectionTitle}>Locales ({filteredEstablishments.length})</Text>
                 {filteredEstablishments.length > 0 ? (
@@ -158,7 +154,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#ffffff',
-    paddingTop: Platform.OS === 'android' ? 40 : 0, // Evita que se meta debajo del reloj en Android
+    paddingTop: Platform.OS === 'android' ? 40 : 0, 
   },
   header: {
     flexDirection: 'row',
@@ -167,7 +163,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6', // Línea sutil elegante
+    borderBottomColor: '#F3F4F6', 
   },
   backButton: {
     marginRight: 12,
@@ -177,10 +173,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6', // Gris claro moderno
-    borderRadius: 12, // Bordes más suaves
+    backgroundColor: '#F3F4F6', 
+    borderRadius: 12, 
     paddingHorizontal: 12,
-    height: 46, // Altura fija cómoda
+    height: 46, 
   },
   searchIcon: {
     marginRight: 8,
@@ -189,8 +185,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: Colors.text,
-    height: '100%', // 💡 Esto soluciona el texto invisible
-    paddingVertical: 0, // 💡 Esto evita que Android corte el texto arriba/abajo
+    height: '100%', 
+    paddingVertical: 0, 
   },
   clearButton: {
     padding: 4,
@@ -199,7 +195,7 @@ const styles = StyleSheet.create({
     padding: Sizes.padding,
     paddingBottom: 40,
   },
-  // Estilos de estado vacío
+  
   recentContainer: {
     marginTop: 10,
   },
@@ -229,7 +225,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginLeft: 6,
   },
-  // Estilos de tus resultados
+
   sectionTitle: {
     fontSize: Sizes.subtitle,
     fontWeight: 'bold',

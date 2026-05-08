@@ -1,12 +1,9 @@
-// screens/HomeScreen.tsx
-
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
-// Importar mock data y componentes...
 import ProductCarousel from '@/components/ProductCarousel';
 import HomeSearchInput from '@/components/search/HomeSearchInput';
 import BannerSlider from '../../components/HomeScreen/BannerSlider';
@@ -15,7 +12,6 @@ import QuickOptions from '../../components/HomeScreen/QuickOption';
 import { MOCK_BANNERS, MOCK_ESTABLISHMENTS, MOCK_PRODUCTS } from '../../constants/mockData';
 import { useAuth } from '../../context/authContext';
 
-// Componente de cierre visual
 const AppFooter = () => (
   <View style={styles.footerContainer}>
     <View style={styles.footerLine} />
@@ -87,14 +83,13 @@ const HomeScreen = () => {
         {/* 🚀 NUEVA SECCIÓN: FOOTER DE CIERRE */}
         <AppFooter />
         
-        <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  // ... (tus estilos existentes)
+ 
   safeArea: { flex: 1, backgroundColor: '#ffffff' },
   container: { flex: 1 },
   topHeader: { paddingHorizontal: Sizes.padding, paddingTop: 20, paddingBottom: 15 },
@@ -108,11 +103,11 @@ const styles = StyleSheet.create({
   sectionMargin: { marginBottom: 30 },
   establishmentList: { paddingHorizontal: Sizes.padding },
 
-  // --- NUEVOS ESTILOS PARA EL FOOTER ---
+  
   footerContainer: {
     paddingVertical: 40,
     alignItems: 'center',
-    backgroundColor: '#F9FAFB', // Un fondo gris apenas perceptible
+    backgroundColor: '#F9FAFB', 
     marginTop: 10,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
