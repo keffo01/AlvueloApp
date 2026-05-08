@@ -5,6 +5,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,10 +13,11 @@ import {
 } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
+import ProductDetailModal from '../ProductDetailModal';
+
 
 // Obtenemos el ancho de la pantalla para calcular las dimensiones del banner
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 // Proporciones "cinematográficas": El ancho menos el padding doble, y la altura es la mitad de eso.
 const BANNER_WIDTH = SCREEN_WIDTH - (Sizes.padding * 2);
 const BANNER_HEIGHT = BANNER_WIDTH * (9 / 18); // Relación de aspecto 2:1 aproximadamente para look moderno
@@ -26,6 +28,7 @@ interface Banner {
   imageUri: string; // URL o require local de la imagen
   title?: string;
   description?: string;
+    productData: any;
   onPress?: () => void; // Acción al tocar el banner
 }
 
@@ -36,10 +39,8 @@ interface BannerSliderProps {
 const BannerSlider: React.FC<BannerSliderProps> = ({ banners }) => {
   // Estado para rastrear en qué índice del slider estamos para los puntitos
   const [currentIndex, setCurrentIndex] = useState(0);
-  
   // Referencia al FlatList (opcional por si quisieras auto-scroll)
   const flatListRef = useRef<FlatList>(null);
-
   // Manejador del scroll para actualizar el índice actual
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -50,13 +51,21 @@ const BannerSlider: React.FC<BannerSliderProps> = ({ banners }) => {
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50, // Considera visible cuando el 50% de la card está en pantalla
   }).current;
+ const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const handleOpenModal = () => {
+    setIsModalVisible(true);
+  };
+  
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+  };
   // Renderizador de cada ítem (banner)
   const renderItem = ({ item }: { item: Banner }) => {
     return (
       <TouchableOpacity 
         style={styles.cardContainer} 
-        onPress={item.onPress} 
+        onPress={handleOpenModal} 
         activeOpacity={0.9}
       >
         <Image 
@@ -76,7 +85,7 @@ const BannerSlider: React.FC<BannerSliderProps> = ({ banners }) => {
   };
 
   return (
-    <View style={styles.mainContainer}>
+    <> <View style={styles.mainContainer}>
       <FlatList
         ref={flatListRef}
         data={banners}
@@ -106,6 +115,21 @@ const BannerSlider: React.FC<BannerSliderProps> = ({ banners }) => {
         ))}
       </View>
     </View>
+      <Modal
+        visible={isModalVisible}
+        onRequestClose={handleCloseModal}
+        animationType="slide"
+        presentationStyle="pageSheet" // Estilo iOS de modal (opcional)
+      >
+        <ProductDetailModal 
+          product={banners[currentIndex].productData} 
+          onClose={handleCloseModal} 
+          deliveryCost={banners[currentIndex].productData.establishment.deliveryCost}
+          establishmentId={banners[currentIndex].productData.establishment.id}
+        />
+      </Modal>
+    </>
+   
   );
 };
 

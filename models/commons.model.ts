@@ -8,6 +8,7 @@ export interface Banner {
   imageUri: string; // URL de la imagen del banner
   title: string;
   description: string;
+  productData : {};// Agregamos el producto relacionado para pasar a ProductCard
   // Podría incluir un 'targetUrl' o 'targetScreen' para navegación
 }
 

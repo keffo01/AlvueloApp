@@ -7,18 +7,61 @@ export const MOCK_BANNERS: Banner[] = [
     imageUri: 'https://i.pinimg.com/736x/80/fc/af/80fcaffe54e87574176443dd0766ebbd.jpg',
     title: 'Super Promo de Verano',
     description: '¡2x1 en todas las hamburguesas gourmet solo esta semana!',
-  },
+    productData: { // 👈 Este objeto debe ser igual al que espera tu modal
+      productId: 'pr1',
+      name: '2x1 en Hamburguesas Gourmet',
+      price: 5.99,
+      description: '¡Solo por hoy en Aguilares y Guazapa! Disfruta de nuestro combo especial con hamburguesa, papas y bebida a un precio increíble.',
+      imageUri: 'https://i.pinimg.com/736x/80/fc/af/80fcaffe54e87574176443dd0766ebbd.jpg',
+      
+      options : { 
+    Complemento1: ["Clasica", "Pollo", "Vegetariana"],
+    Complemento2: ["Clasica", "Pollo", "Vegetariana"],
+    extras :[{id: 'extra1', name: 'Papas normales'}, {id: 'extra2', name: '2 bebidas 12 oz'},{id: 'extra3', name: '2 pie de manzana' }]
+},
+      establishment : {
+        id: 'e2',
+        name: 'El Chef',
+        deliveryCost: 1,
+  }   
+ }
+},
   {
     id: 'b2',
     imageUri: 'https://i.pinimg.com/736x/0b/6e/d5/0b6ed51c1a0eac91f19634b949179a09.jpg',
     title: 'Descuento en Postres',
     description: 'Obtén un 30% de descuento al ordenar cualquier postre.',
+    productData: { // 👈 Este objeto debe ser igual al que espera tu modal
+      productId: 'p2',
+      name: 'Descuento en Postres',
+      price: 5.99,
+      description: '30% de descuento en todos los postres. Endulza tu día con nuestras deliciosas opciones, desde pasteles hasta helados.',
+      imageUri: 'https://i.pinimg.com/736x/0b/6e/d5/0b6ed51c1a0eac91f19634b949179a09.jpg',
+      
+      establishment : {
+        id: 'e7',
+        name: 'Coulant',
+        deliveryCost: 1,
+    }
+   }
   },
   {
     id: 'b3',
     imageUri: 'https://i.pinimg.com/736x/53/c8/24/53c8245018303bbd64083e62e77a1179.jpg',
     title: 'Envío Gratis',
     description: 'Envío gratis en todos los restaurantes con mínimo de $15.',
+    productData: { // 👈 Este objeto debe ser igual al que espera tu modal
+      productId: 'p3',
+      name: 'Envío Gratis en Aguilares y Guazapa',
+      price: 5.99,
+      description: 'Solo por hoy en Aguilares y Guazapa...',
+      imageUri: 'https://i.pinimg.com/736x/53/c8/24/53c8245018303bbd64083e62e77a1179.jpg',
+      establishment : {
+        id: 'e1',
+        name: 'Comedor Central',
+        deliveryCost: 0,
+      }
+    }
   },
 ];
 
