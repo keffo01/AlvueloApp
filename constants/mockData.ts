@@ -266,9 +266,87 @@ export const MOCK_PRODUCTS: Product[] = [
   },
   // ... (Añade más productos para otros establecimientos si deseas probar el filtro)
 ];
-// constants/mockData.ts (Añadir nuevos tipos e interfaces)
 
 
+export const MOCK_ALL_QUICK_OPTIONS: Establishment[] = [
+  // 🍔 RESTAURANTES (Locales)
+  {
+    id: 'rest-1',
+    name: 'Pupusería El Paisnal',
+    category: 'restaurantes',
+    rating: 4.8,
+    deliveryTime: '20-35 min',
+    deliveryCost: 1.50,
+    imageUri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+    tags: ['Típica', 'Pupusas', 'Desayunos'],
+  },
+  {
+    id: 'rest-2',
+    name: 'Pollo Campestre Aguilares',
+    category: 'restaurantes',
+    rating: 4.5,
+    deliveryTime: '30-45 min',
+    deliveryCost: 2.00,
+    imageUri: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=400&q=80',
+    tags: ['Pollo', 'Comida Rápida'],
+  },
+
+  // 💊 FARMACIAS
+  {
+    id: 'farm-1',
+    name: 'Farmacia Brasil Guazapa',
+    category: 'farmacia',
+    rating: 4.9,
+    deliveryTime: '15-25 min',
+    deliveryCost: 1.00,
+    imageUri: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=400&q=80',
+    tags: ['Medicamentos', 'Cuidado Personal'],
+  },
+  {
+    id: 'farm-2',
+    name: 'Farmacia San Nicolás',
+    category: 'farmacia',
+    rating: 4.6,
+    deliveryTime: '20-30 min',
+    deliveryCost: 1.50,
+    imageUri: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?auto=format&fit=crop&w=400&q=80',
+    tags: ['Salud', 'Conveniencia'],
+  },
+
+  // 🛒 SUPERMERCADOS (Super)
+  {
+    id: 'super-1',
+    name: 'Súper Selectos Aguilares',
+    category: 'super',
+    rating: 4.7,
+    deliveryTime: '45-60 min',
+    deliveryCost: 2.50,
+    imageUri: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=400&q=80',
+    tags: ['Abarrotes', 'Carnes', 'Hogar'],
+  },
+  {
+    id: 'super-2',
+    name: 'Tienda La Esquina',
+    category: 'super',
+    rating: 4.3,
+    deliveryTime: '15-20 min',
+    deliveryCost: 1.00,
+    imageUri: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=400&q=80',
+    tags: ['Bebidas', 'Snacks', 'Básicos'],
+  },
+
+  // 🎁 COMBOS ESPECIALES
+  {
+    id: 'combo-1',
+    name: 'Promos de Fin de Semana',
+    category: 'combos',
+    rating: 5.0,
+    deliveryTime: '30-40 min',
+    deliveryCost: 1.50,
+    imageUri: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+    tags: ['Ofertas', 'Familiar', 'Pizza'],
+  },
+];
 
 // --- Mock Data para Opiniones ---
 export const MOCK_REVIEWS: Review[] = [

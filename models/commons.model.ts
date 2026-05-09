@@ -64,11 +64,12 @@ export interface Establishment {
   id: string;
   name: string;
   category: string;
-  rating: number; // Por ejemplo, un rating de 1 a 5
-  likes: number; // El contador para el ranking de prestigio
+  rating?: number; // Por ejemplo, un rating de 1 a 5
+  likes?: number; // El contador para el ranking de prestigio
   imageUri: string;
   description?: string; // Descripción opcional
-  tags?: string[]; // Etiquetas para búsqueda y filtrado
+  tags?: string[]; // Etiquetas para búsqueda y filtrado{}
+  deliveryTime?: string; // Ejemplo: '30-40 min'
   
   
 }

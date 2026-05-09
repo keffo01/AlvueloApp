@@ -1,5 +1,3 @@
-// components/QuickOptions.tsx
-
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -13,20 +11,25 @@ const GAP = 10;
 const COLUMN_WIDTH = (width - (GRID_PADDING * 2) - GAP) / 2;
 
 const QuickOptions: React.FC = () => {
-  const navigation = useRouter();
+  const router = useRouter();
 
-  const handlePress = (name: string) => {
-    navigation.push(name as any);
+  // 💡 Lógica de enrutamiento dinámico
+const handlePress = (categoryId: string) => {
+    if (categoryId === 'envios') {
+      router.push('/envios'); // Asumiendo que tienes app/envios/index.tsx
+    } else {
+      router.push(`/${categoryId}`); // Navega a app/[category]/index.tsx
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.grid}>
         
-        {/* 1. BOTÓN GRANDE (Combos Especiales) - Ocupa toda la columna izquierda */}
+        {/* 1. BOTÓN GRANDE (Combos Especiales) */}
         <TouchableOpacity 
           style={[styles.bigCard, { backgroundColor: '#FFF4E5' }]} 
-          onPress={() => handlePress('Combos')}
+          onPress={() => handlePress('combos')}
         >
           <View style={styles.iconCircleBig}>
             <Ionicons name="fast-food" size={32} color="#FF8C00" />
@@ -39,7 +42,7 @@ const QuickOptions: React.FC = () => {
           {/* 2. BOTÓN MEDIANO (Farmacia) */}
           <TouchableOpacity 
             style={[styles.mediumCard, { backgroundColor: '#E8F5E9' }]} 
-            onPress={() => handlePress('Farmacia')}
+            onPress={() => handlePress('farmacia')}
           >
             <Ionicons name="medical" size={24} color="#2E7D32" />
             <Text style={styles.mediumCardTitle}>Farmacia</Text>
@@ -48,25 +51,31 @@ const QuickOptions: React.FC = () => {
           {/* FILA DE 3 BOTONES PEQUEÑOS ABAJO */}
           <View style={styles.smallRow}>
              {/* 3. Restaurantes */}
-             <TouchableOpacity style={styles.smallCard} onPress={() => handlePress('Restaurantes')}>
+             <TouchableOpacity 
+                style={styles.smallCard} 
+                onPress={() => handlePress('restaurantes')}
+             >
                 <Ionicons name="restaurant" size={20} color={Colors.primary} />
                 <Text style={styles.smallCardText}>Locales</Text>
              </TouchableOpacity>
 
-             {/* 4. Mandaditos (O similar) */}
-             <TouchableOpacity style={styles.smallCard} onPress={() => handlePress('Mandaditos')}>
+             {/* 4. Mandaditos (Redirige a la pantalla especial de envíos) */}
+             <TouchableOpacity 
+                style={styles.smallCard} 
+                onPress={() => handlePress('envios')}
+             >
                 <Ionicons name="bicycle" size={20} color={Colors.primary} />
                 <Text style={styles.smallCardText}>Envíos</Text>
              </TouchableOpacity>
           </View>
           
-          {/* 5. OTRO BOTÓN MEDIANO (Supermercado / Otros) */}
+          {/* 5. OTRO BOTÓN MEDIANO (Supermercado) */}
           <TouchableOpacity 
             style={[styles.mediumCard, { backgroundColor: '#E3F2FD', marginTop: GAP }]} 
-            onPress={() => handlePress('Super')}
+            onPress={() => handlePress('super')}
           >
             <Ionicons name="cart" size={24} color="#1565C0" />
-            <Text style={styles.mediumCardTitle}>Super</Text>
+            <Text style={styles.mediumCardTitle}>Súper</Text>
           </TouchableOpacity>
         </View>
 
@@ -82,9 +91,8 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: 'row',
-    height: 220, // Altura fija para el rompecabezas
+    height: 220, 
   },
-  // --- CARD GRANDE ---
   bigCard: {
     width: COLUMN_WIDTH,
     height: '100%',
@@ -111,7 +119,6 @@ const styles = StyleSheet.create({
     color: '#FF8C00',
     fontWeight: '600',
   },
-  // --- COLUMNA DERECHA ---
   rightColumn: {
     flex: 1,
     justifyContent: 'space-between',
