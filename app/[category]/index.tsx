@@ -10,7 +10,7 @@ import { Establishment } from '@/models/commons.model';
 import { Ionicons } from '@expo/vector-icons';
 
 const EstablishmentListScreen: React.FC = () => {
-  const { categories: categoryId } = useLocalSearchParams();
+  const { category: categoryId } = useLocalSearchParams();
   const categoryName = Array.isArray(categoryId) ? categoryId[0] : categoryId || 'Establecimientos';
 
   // Estados para Rendimiento y AWS
