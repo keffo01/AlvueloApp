@@ -271,14 +271,14 @@ export const MOCK_PRODUCTS: Product[] = [
 export const MOCK_ALL_QUICK_OPTIONS: Establishment[] = [
   // 🍔 RESTAURANTES (Locales)
   {
-    id: 'rest-1',
-    name: 'Pupusería El Paisnal',
+    id: 'e7',
+    name: 'Coulant',
     category: 'restaurantes',
     rating: 4.8,
     deliveryTime: '20-35 min',
     deliveryCost: 1.50,
-    imageUri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
-    tags: ['Típica', 'Pupusas', 'Desayunos'],
+    imageUri: 'https://i.ibb.co/vCK51Rys/476484471-122102635292752952-8850275169208217337-n.jpg',
+    tags: ['pasteles', 'postres', 'artesanal'],
   },
   {
     id: 'rest-2',
@@ -337,7 +337,7 @@ export const MOCK_ALL_QUICK_OPTIONS: Establishment[] = [
 
   // 🎁 COMBOS ESPECIALES
   {
-    id: 'combo-1',
+    id: 'p6',
     name: 'Promos de Fin de Semana',
     category: 'combos',
     rating: 5.0,

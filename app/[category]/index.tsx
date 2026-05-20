@@ -1,6 +1,6 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Sizes from '../../constants/Sizes';
 import colors from '../../constants/colors';
 
@@ -18,7 +18,8 @@ const EstablishmentListScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  
   // 💡 Lógica de Carga con Paginación (Preparada para AWS)
   const loadEstablishments = async (isInitial = false) => {
     if (loading || (!hasMore && !isInitial)) return;
@@ -52,6 +53,20 @@ const EstablishmentListScreen: React.FC = () => {
     }
   };
 
+   const handleOpenModal = (establishmentId: string) => {
+      console.log("Abrir modal para categoría:", categoryName, "con establecimientos:", establishmentId);
+      if (categoryId === 'restaurantes' || categoryId === 'farmacia' || categoryId === 'super') {
+        router.push(`/establishment/${establishmentId }` as any);
+      }else {
+        // Lógica para abrir modal de establecimiento o producto
+        setIsModalVisible(true);
+      }
+    };
+    
+    const handleCloseModal = () => {
+      setIsModalVisible(false);
+    };
+
   useEffect(() => {
     loadEstablishments(true);
   }, [categoryName]);
@@ -65,7 +80,7 @@ const renderEstablishment  = useCallback(({ item }: { item: Establishment }) => 
   return (
     <TouchableOpacity 
       style={styles.cardWrapper} 
-      onPress={() => /* Navegar al detalle */ {}}
+      onPress={() => handleOpenModal(item.id)}
       activeOpacity={0.7}
     >
       <View style={isProductFocus ? styles.productCard : styles.establishmentRow}>
@@ -110,12 +125,13 @@ const renderEstablishment  = useCallback(({ item }: { item: Establishment }) => 
 }, [categoryName]);
 
   return (
+    <>
     <View style={styles.container}>
       <Stack.Screen 
         options={{ 
-          title: categoryName.charAt(0).toUpperCase() + categoryName.slice(1), 
+          title:' '+ categoryName.charAt(0).toUpperCase() + categoryName.slice(1), 
           headerBackTitle: 'Inicio',
-          headerTintColor: colors.primary,
+          headerTintColor: '#000',
           headerTitleStyle: { fontWeight: 'bold' }
         }} 
       />
@@ -150,6 +166,19 @@ const renderEstablishment  = useCallback(({ item }: { item: Establishment }) => 
         }
       />
     </View>
+    <Modal
+        visible={isModalVisible}
+        onRequestClose={handleCloseModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+       <TouchableOpacity onPress={handleCloseModal} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, marginBottom: 20 }}>Detalle del Producto</Text>
+          <Ionicons name="close-circle" size={36} color={colors.text} />
+        </TouchableOpacity>
+      </Modal>
+    </>
+    
   );
 };
 

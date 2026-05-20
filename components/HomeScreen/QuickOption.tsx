@@ -16,7 +16,7 @@ const QuickOptions: React.FC = () => {
   // 💡 Lógica de enrutamiento dinámico
 const handlePress = (categoryId: string) => {
     if (categoryId === 'envios') {
-      router.push('/envios'); // Asumiendo que tienes app/envios/index.tsx
+      router.push('/category/envios'); // Asumiendo que tienes app/envios/index.tsx
     } else {
       router.push(`/${categoryId}`); // Navega a app/[category]/index.tsx
     }

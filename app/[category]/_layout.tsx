@@ -1,3 +1,4 @@
+import CartIcon from '@/components/CartIcon';
 import colors from '@/constants/colors'; // adjust the import path based on your project structure
 import Sizes from '@/constants/Sizes';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,9 @@ export default function CategoriesLayout() {
                 <TouchableOpacity onPress={() => router.replace('/')} style={{ marginLeft: Sizes.smallPadding / 2 }}>
                 <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
+            ),
+            headerRight : () => (
+                <CartIcon />
             )}} />
             </Stack>
         );
