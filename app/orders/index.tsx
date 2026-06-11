@@ -32,12 +32,25 @@ const MyOrdersScreen = () => {
   const renderOrderItem = ({ item }: { item: any }) => {
     const isExpanded = expandedOrderId === item.orderId;
 
+    // 💡 NUEVO: Extraemos la información basándonos en la nueva estructura agrupada
+    const restaurantsGroup = item.orderData.restaurants || [];
+    
+    // Juntamos los nombres de los restaurantes para el encabezado (ej: "Comedor Central, Coulant")
+    const displayNames = item.restaurantData?.map((r: any) => r.name).join(', ') || 'Comercio';
+    
+    // Calculamos el total de productos sumando los arreglos de todos los restaurantes
+    const totalItemsCount = restaurantsGroup.reduce((acc: number, curr: any) => acc + (curr.items?.length || 0), 0);
+
+    // Como ahora puede haber varios comercios, si no hay imageUri a nivel raíz, usamos un icono o color por defecto
+    const headerImageUri = item.restaurantData?.[0]?.imageUri || 'https://via.placeholder.com/150/eeeeee/cccccc?text=Tienda';
+
     return (
       <View style={styles.orderCard}>
         <View style={styles.headerCard}>
-          <Image source={{ uri: item.restaurantData.imageUri }} style={styles.restImage} />
+          <Image source={{ uri: headerImageUri }} style={styles.restImage} />
           <View style={styles.headerText}>
-            <Text style={styles.restName}>{item.restaurantData.name}</Text>
+            {/* Mostramos todos los comercios involucrados */}
+            <Text style={styles.restName} numberOfLines={1}>{displayNames}</Text>
             <Text style={styles.orderDate}>
               {new Date(item.createdAt).toLocaleDateString()} • {item.orderId}
             </Text>
@@ -51,9 +64,9 @@ const MyOrdersScreen = () => {
 
         <View style={styles.detailsRow}>
           <Text style={styles.itemsCount}>
-            {item.orderData.items.length} {item.orderData.items.length === 1 ? 'producto' : 'productos'}
+            {totalItemsCount} {totalItemsCount === 1 ? 'producto' : 'productos'}
           </Text>
-          <Text style={styles.totalAmount}>${item.orderData.total.toFixed(2)}</Text>
+          <Text style={styles.totalAmount}>${item.orderData.total?.toFixed(2)}</Text>
         </View>
 
         <TouchableOpacity 
@@ -67,12 +80,20 @@ const MyOrdersScreen = () => {
         {/* --- SECCIÓN DESPLEGABLE DE DETALLES --- */}
         {isExpanded && (
           <View style={styles.expandedContent}>
-            <Text style={styles.sectionSubtitle}>Productos:</Text>
-            {item.orderData.items.map((prod: any, index: number) => (
-              <View key={index} style={styles.productRow}>
-                <Text style={styles.productQty}>{prod.quantity}x</Text>
-                <Text style={styles.productName}>{prod.name}</Text>
-                <Text style={styles.productPrice}>${(prod.price * prod.quantity).toFixed(2)}</Text>
+            <Text style={styles.sectionSubtitle}>Productos por Comercio:</Text>
+            
+            {/* 💡 NUEVO: Mapeamos primero los restaurantes y luego sus productos */}
+            {restaurantsGroup.map((rest: any, rIdx: number) => (
+              <View key={rIdx} style={styles.restaurantGroupContainer}>
+                <Text style={styles.restaurantGroupName}>{rest.restaurantName}</Text>
+                
+                {rest.items?.map((prod: any, pIdx: number) => (
+                  <View key={pIdx} style={styles.productRow}>
+                    <Text style={styles.productQty}>{prod.quantity}x</Text>
+                    <Text style={styles.productName}>{prod.name}</Text>
+                    <Text style={styles.productPrice}>${(prod.price * prod.quantity).toFixed(2)}</Text>
+                  </View>
+                ))}
               </View>
             ))}
             
@@ -94,10 +115,9 @@ const MyOrdersScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: 'Mis Pedidos' }} />
+      <Stack.Screen options={{ title: 'Historial de ordenes' }} />
       
       <FlatList
-        // Usamos una copia del arreglo para que .reverse() no mute el estado original
         data={[...orders].reverse()} 
         keyExtractor={(item) => item.orderId}
         renderItem={renderOrderItem}
@@ -128,7 +148,7 @@ const styles = StyleSheet.create({
   },
   headerCard: { flexDirection: 'row', alignItems: 'center' },
   restImage: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#eee' },
-  headerText: { flex: 1, marginLeft: 12 },
+  headerText: { flex: 1, marginLeft: 12, paddingRight: 8 }, // Añadido paddingRight para evitar superposición con el badge
   restName: { fontSize: 16, fontWeight: 'bold', color: Colors.text },
   orderDate: { fontSize: 12, color: Colors.lightText, marginTop: 2 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
@@ -161,14 +181,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontSize: 14,
   },
+  // 💡 Estilos agregados para separar visualmente los comercios dentro del detalle
+  restaurantGroupContainer: {
+    marginBottom: 10,
+  },
+  restaurantGroupName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
   productRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 6,
+    paddingLeft: 4, // Pequeña indentación visual
   },
   productQty: {
     fontWeight: 'bold',
-    color: Colors.primary,
+    color: Colors.text,
     marginRight: 8,
     width: 25,
   },

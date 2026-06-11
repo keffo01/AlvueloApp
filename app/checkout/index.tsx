@@ -65,6 +65,7 @@ const CheckoutScreen: React.FC = () => {
 
   // --- MANEJADOR DE ORDEN ---
  // 2. Reemplaza tu handlePlaceOrder actual con este:
+// 2. Reemplaza tu handlePlaceOrder actual con este:
 const handlePlaceOrder = async () => {
   // Validaciones iniciales
   if (!selectedAddressId) return Alert.alert("Faltan datos", "Por favor, selecciona una dirección de entrega.");
@@ -79,42 +80,63 @@ const handlePlaceOrder = async () => {
   try {
     setIsProcessing(true); // Bloqueamos el botón
 
-    // 💡 TRUCO: Obtenemos los datos del restaurante usando el primer producto del carrito
-    // (Asumiendo que los productos en el carrito tienen la info del establecimiento)
-    const restaurantInfo = cart.length > 0 ? cart[0].establishment : null;
+    // 💡 NUEVO: Agrupamos los items por su respectivo restaurante
+    const groupedItems = cart.reduce((acc: any, item: any) => {
+      const estId = item.establishment?.id || "N/A";
+      const estName = item.establishment?.name || "Comercio Desconocido";
 
-    // Buscamos el texto exacto de la dirección seleccionada (opcional, para guardarlo legible)
+      // Si el restaurante aún no existe en nuestro acumulador, lo creamos
+      if (!acc[estId]) {
+        acc[estId] = {
+          restaurantId: estId,
+          restaurantName: estName,
+          items: []
+        };
+      }
+
+      // Agregamos el platillo al restaurante correspondiente
+      acc[estId].items.push({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      });
+
+      return acc;
+    }, {});
+
+    // Convertimos el objeto agrupado en un arreglo limpio
+    const groupedRestaurants = Object.values(groupedItems);
+
+    // Buscamos el texto exacto de la dirección seleccionada
     const fullAddress = addresses.find(a => a.id === selectedAddressId)?.name +' '+ addresses.find(a => a.id === selectedAddressId)?.reference || selectedAddressId;
 
-    // 📦 ARMAMOS EL PAQUETE (El JSON exacto que espera la Lambda)
+    // 📦 ARMAMOS EL PAQUETE (Estructura actualizada)
     const orderPayload = {
       email: userData?.email,
       orderData: {
-        items: cart.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price
-        })),
+        // En lugar de una lista plana, enviamos la lista agrupada Comercio -> Items
+        restaurants: groupedRestaurants, 
         subtotal: subtotal,
         deliveryCost: MOCK_DELIVERY_COST,
         total: total,
-        deliveryAddress: fullAddress, // Guardamos la dirección completa
-        paymentMethod: paymentMethod, // 'cash' o 'card'
+        deliveryAddress: fullAddress,
+        paymentMethod: paymentMethod,
       },
       customerData: {
         name: userData?.name || "Cliente",
         phone: userData?.phoneNumber || "",
-        // Evitamos enviar datos sensibles o innecesarios
       },
-      restaurantData: {
-        id: restaurantInfo?.id || "N/A",
-        name: restaurantInfo?.name || "Restaurante"
-      }
+      // Guardamos un arreglo con todos los comercios involucrados en la orden
+      restaurantData: groupedRestaurants.map((g: any) => ({
+        id: g.restaurantId,
+        name: g.restaurantName
+      }))
     };
 
     // 🚀 ENVIAMOS A API GATEWAY
     const response = await orderService.createOrder(orderPayload);
+    
     const newOrderLocal = {
         orderId: response.orderId,
         createdAt: new Date().toISOString(),
@@ -123,9 +145,10 @@ const handlePlaceOrder = async () => {
         restaurantData: orderPayload.restaurantData,
         customerData: orderPayload.customerData
       };
+      
     const updatedOrders = userData?.orders ? [...userData.orders, newOrderLocal] : [newOrderLocal];
       
-      updateUserData({ orders: updatedOrders });
+    updateUserData({ orders: updatedOrders });
 
     // Si todo sale bien...
     Alert.alert(
