@@ -79,10 +79,11 @@ const AddressItem: React.FC<{ address: Address, onEdit: (id: string) => void, on
 
                     {/* Botones de Acción */}
                     <View style={styles.actionsContainer}>
+                        {/*
                         <TouchableOpacity style={styles.actionButton} onPress={() => onEdit(address.id)}>
                             <Ionicons name="pencil" size={20} color={colors.secondary} />
                             <Text style={styles.actionText}>Editar</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */ }
                         <TouchableOpacity style={styles.actionButton} onPress={() => onDelete(address.id)}>
                             <Ionicons name="trash" size={20} color={colors.error} />
                             <Text style={[styles.actionText, { color: colors.error }]}>Eliminar</Text>

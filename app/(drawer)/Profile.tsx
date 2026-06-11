@@ -28,8 +28,8 @@ const ProfileScreen: React.FC = () => {
   ];
 
   const GENERAL_OPTIONS = [
-    { iconName: 'help-circle-outline', title: 'Ayuda y Soporte', onPress: () => handleNavigation('help') },
-    { iconName: 'document-text-outline', title: 'Términos y Condiciones', onPress: () => handleNavigation('terms') },
+    { iconName: 'help-circle-outline', title: 'Ayuda y Soporte', onPress: () => handleNavigation('/help') },
+    { iconName: 'document-text-outline', title: 'Términos y Condiciones', onPress: () => handleNavigation('/terms') },
   ];
 
   const handleLogout = () => {
