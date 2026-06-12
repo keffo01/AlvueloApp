@@ -16,7 +16,7 @@ interface SearchResultProductCardProps {
         deliveryCost: number;
        };
        establishmentName: string;
-       id: string;
+       productId: string;
        imageUri: string;
        name: string;
        price: number;
@@ -25,7 +25,6 @@ interface SearchResultProductCardProps {
 
 const SearchResultProductCard: React.FC<SearchResultProductCardProps> = ({ product }) => {
     // 💡 NOTA: Al tocar un producto, podrías abrir el modal de detalle del producto (ProductDetailModal)
-   console.log('Producto seleccionado:', product); // Para verificar que el producto se recibe correctamente
     const [isModalVisible, setIsModalVisible] = useState(false);
     
       const handleOpenModal = () => {
@@ -54,7 +53,7 @@ const SearchResultProductCard: React.FC<SearchResultProductCardProps> = ({ produ
         >
                         {/* Map the lightweight search product to the full Product shape expected by ProductDetailModal */}
                         <ProductDetailModal
-                    product={product as any} // Usamos 'as any' para evitar conflictos de tipos estrictos, pero idealmente deberías adaptar tu modelo de producto para que sea compatible
+                    product={product} // Usamos 'as any' para evitar conflictos de tipos estrictos, pero idealmente deberías adaptar tu modelo de producto para que sea compatible
                     onClose={handleCloseModal} 
                     deliveryCost={product.establishment.deliveryCost} 
                     establishmentId={product.establishment.id}                        />

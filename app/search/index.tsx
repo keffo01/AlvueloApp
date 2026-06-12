@@ -108,15 +108,17 @@ const SearchScreen: React.FC = () => {
                 <Text style={styles.sectionTitle}>Platos/Productos ({products.length})</Text>
 {products.length > 0 ? (
     products.map((p: any) => {
+      console.log("Producto crudo de la API de búsqueda:", p); // Debug: Ver qué datos llegan
         // 💡 Construimos el objeto adaptado con un escudo contra valores undefined
         const adaptedProduct = {
-            id: p.productId || p.id || Math.random().toString(),
+            productId: p.productId || p.id || Math.random().toString(),
             name: p.name || '',
             price: Number(p.price || 0),
             establishmentName: p.establishmentName || '',
             description: p.description || '',
             imageUri: p.imageUri || '',
-            category: (typeof p.category === 'string' ? p.category : "Combo") as any, 
+            category: (typeof p.category === 'string' ? p.category : "Combo") as any,
+            options: p.options || [], // Si no hay opciones, le damos un objeto vacío para evitar errores 
             establishment: {
                 id: p.establishment?.id || '',
                 // 💡 SALVAVIDAS: Si la API de búsqueda no envía el costo, le ponemos 0 temporalmente para que no rompa el .toFixed del carrito
@@ -129,10 +131,9 @@ const SearchScreen: React.FC = () => {
             <TouchableOpacity 
               key={p.productId || p.id} 
               // 💡 CORRECCIÓN CLAVE: Pasamos 'adaptedProduct' con su 'id' y 'deliveryCost' estables, NO el 'p' en bruto
-              onPress={() => router.push(`/product/${adaptedProduct.id}`)} 
               activeOpacity={0.8}
             >
-              <SearchResultProductCard product={adaptedProduct as any} />
+              <SearchResultProductCard product={adaptedProduct} />
             </TouchableOpacity>
         );
     })
