@@ -6,77 +6,125 @@ import InfoTab from '@/components/view/InfoTab';
 import ProductsTab from '@/components/view/ProductsTab';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // 💡 NUEVO
-import { SceneMap, TabBar, TabView } from 'react-native-tab-view'; // 💡 Nuevas importaciones
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
+
 import colors from '../../constants/colors';
-import { Establishment, MOCK_ALL_ESTABLISHMENTS, MOCK_PRODUCTS, MOCK_REVIEWS } from '../../constants/mockData';
+import { MOCK_REVIEWS } from '../../constants/mockData'; // Mantenemos reviews del mock temporalmente
 import Sizes from '../../constants/Sizes';
-const initialLayout = { width: Dimensions.get('window').width };
+
+const { width, height } = Dimensions.get('window');
+const initialLayout = { width };
+
+// 💡 TU URL DE API GATEWAY AQUÍ
+const API_URL = 'https://8bnz9a5r1j.execute-api.us-east-2.amazonaws.com/dev-establisment/establisment'; 
+
+// --- 💡 Hook Custom para manejar la API ---
+const useEstablishmentData = (id: string) => {
+  const [establishment, setEstablishment] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    
+    setLoading(true);
+    fetch(`${API_URL}/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error('No encontrado');
+        return res.json();
+      })
+      .then(data => {
+        setEstablishment(data);
+        setError(false);
+      })
+      .catch(err => {
+        console.error("Error fetching establishment:", err);
+        setError(true);
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  return { establishment, loading, error };
+};
 
 // --- Componente de Detalle ---
 const EstablishmentDetailScreen: React.FC = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const insets = useSafeAreaInsets(); // 💡
- // 💡 CORRECCIÓN CLAVE: Garantizar que 'id' es un string
-  let rawId = params.id;
-
-  // Si rawId es un array (ej: ['e4']), toma el primer elemento.
-  // Si es un string (ej: 'e4'), lo deja como está. Si es undefined, lo convierte en string vacía.
+  const insets = useSafeAreaInsets();
+  
+  const rawId = params.id;
   const id: string = Array.isArray(rawId) ? rawId[0] : rawId?.toString() || ''; 
     
-  // --- El useMemo ahora usa la variable 'id' limpia ---
-  const establishment: Establishment | undefined = useMemo(() => 
-    MOCK_ALL_ESTABLISHMENTS.find(e => {
-      // Opcional: Agregar un console.log para verificar los valores justo antes de la comparación
-     //  console.log(`Buscando ID: '${id}' === Datos ID: '${e.id}'`);
-      return e.id === id;
-    }), 
-    [id]
-  );
-  //console.log(`initialId: ${id}, establishments :${establishment}`)
-  // 2. Obtener los productos de este Establecimiento
-  const products = useMemo(() => 
-    MOCK_PRODUCTS.filter(p => p.establishment.id === id),
-    [id]
-  );
-   // 💡 OBTENER LAS OPINIONES FILTRADAS
-    const reviews = useMemo(() => 
-        MOCK_REVIEWS.filter(r => r.establishmentId === id),
-        [id]
-    );
-    // --- Lógica de Estado para las Pestañas ---
-const [index, setIndex] = useState(0);
-const [routes] = useState([
-  { key: 'products', title: 'Menú' },
-  // 💡 Actualizamos el título de Reviews con el conteo
-  { key: 'reviews', title: `Opiniones (${reviews.length})` }, 
-  { key: 'info', title: 'Información' }, 
-]);
+  // 💡 Consumimos nuestro Hook
+  const { establishment, loading, error } = useEstablishmentData(id);
 
-  // Manejo de Error si no se encuentra el establecimiento
-  if (!establishment) {
+  const [index, setIndex] = useState(0);
+
+  // 💡 Mapeamos los datos dinámicos o caemos en arreglos vacíos si no existen
+  // 💡 Mapeamos los productos de la BD para que tengan la estructura exacta que tu ProductsTab espera
+const products = (establishment?.products || []).map((p: any) => ({
+    ...p,
+    // Tu BD usa 'productId', pero tu componente probablemente espera 'id'
+    id: p.productId || p.id || Math.random().toString(), 
+    
+    // Aseguramos que el precio sea sí o sí un número por si el componente usa .toFixed()
+    price: Number(p.price || 0), 
+    
+    // Agregamos el establecimiento anidado por si el botón del carrito lo necesita
+    establishment: { id: id } 
+}));
+  const reviews = MOCK_REVIEWS.filter(r => r.establishmentId === id); // Temporal hasta que esté en BD
+
+  const [routes] = useState([
+    { key: 'products', title: 'Menú' },
+    { key: 'reviews', title: `Opiniones (${reviews.length})` }, 
+    { key: 'info', title: 'Información' }, 
+  ]);
+
+  // --- Manejo de Estados de UI ---
+  if (loading) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Establecimiento no encontrado.</Text>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
- // --- Renderizado de Escenas (Pestañas) ---
-const renderScene = SceneMap({
-  products: () => <ProductsTab products={products} />,
-  info: () => <InfoTab establishment={establishment} />,
-  // 💡 Renderizamos el nuevo ReviewsTab
-  reviews: () => <ReviewsTab reviews={reviews} establishmentId={id} />, 
-});
 
-  // --- Renderizado de la Barra de Pestañas (Custom TabBar) ---
+  if (error || !establishment) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Establecimiento no encontrado.</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+           <Text style={{ color: colors.primary, fontSize: Sizes.font }}>Volver atrás</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // --- Renderizado de Escenas ---
+  const renderScene = SceneMap({
+    products: () => <ProductsTab products={products} />,
+    info: () => <InfoTab establishment={establishment} />,
+    reviews: () => <ReviewsTab reviews={reviews} establishmentId={id} />, 
+  });
+
   const renderTabBar = (props: any) => (
     <TabBar
       {...props}
-      indicatorStyle={{ backgroundColor: colors.primary, height: 3 }} // Línea indicadora
+      indicatorStyle={{ backgroundColor: colors.primary, height: 3 }}
       style={styles.tabBar}
       labelStyle={styles.tabLabel}
       activeColor={colors.primary}
@@ -86,9 +134,9 @@ const renderScene = SceneMap({
 
   return (
     <View style={styles.container}>
-      {/* 💡 Cabecera Transparente */}
       <Stack.Screen options={{ headerShown: false }}/>
-      {/* 2. NUESTRO HEADER FLOTANTE ABSOLUTO */}
+      
+      {/* HEADER FLOTANTE ABSOLUTO */}
       <View style={[styles.customHeader, { top: insets.top > 0 ? insets.top : 20 }]}>
         <TouchableOpacity 
           onPress={() => router.back()} 
@@ -97,34 +145,37 @@ const renderScene = SceneMap({
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
 
-        <View >
-          {/* 💡 Agregamos el ícono del carrito en la parte derecha del header */}
+        <View>
           <CartIcon />
         </View>
       </View>
       
       <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}> 
-        {/* 1. Imagen Extensible y Datos Principales */}
+        {/* Imagen Extensible y Datos Principales */}
         <Image 
           source={{ uri: establishment.imageUri }} 
           style={styles.heroImage}
         />
         
-        {/* 2. Contenido Principal */}
+        {/* Contenido Principal */}
         <View style={styles.content}>
           <Text style={styles.title}>{establishment.name}</Text>
-          {/* ... (RatingRow y DeliveryText sin cambios) ... */}
           <View style={styles.ratingRow}>
             <Ionicons name="star" size={Sizes.icon} color={colors.rating} />
-            <Text style={styles.ratingText}>{establishment.rating.toFixed(1)} ({establishment.likes})</Text>
+            {/* Validamos que rating y likes existan para evitar errores si en BD están vacíos */}
+            <Text style={styles.ratingText}>
+                {establishment.rating ? Number(establishment.rating).toFixed(1) : 'N/A'} ({establishment.likes || 0})
+            </Text>
             <Text style={styles.categoryText}> • {establishment.category}</Text>
           </View>
-          <Text style={styles.deliveryText}>Costo de Envío: ${establishment.deliveryCost.toFixed(2)}</Text>
+          <Text style={styles.deliveryText}>
+              Costo de Envío: ${establishment.deliveryCost ? Number(establishment.deliveryCost).toFixed(2) : '0.00'}
+          </Text>
         </View>
         
-        {/* 3. Contenedor de Pestañas (Sticky Header) */}
-        {/* Usamos un View para hacer el TabView 'sticky' */}
-        <View style={styles.tabViewWrapper}> 
+        {/* Contenedor de Pestañas (Sticky Header) */}
+        {/* 💡 Reemplazamos la altura fija gigante por una altura calculada en base a la pantalla */}
+        <View style={[styles.tabViewWrapper, { minHeight: height * 0.7 }]}> 
             <TabView
               navigationState={{ index, routes }}
               renderScene={renderScene}
@@ -145,10 +196,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  errorContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: Sizes.title,
@@ -156,20 +208,18 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 250, // Altura visible de la imagen
+    height: 250, 
   },
   content: {
     backgroundColor: colors.background,
-    // Pequeño borde superior redondeado
-    borderTopLeftRadius: Sizes.radius * 2, // Usamos radius del archivo Sizes.js
+    borderTopLeftRadius: Sizes.radius * 2, 
     borderTopRightRadius: Sizes.radius * 2,
-    marginTop: -Sizes.padding * 2, // Subir el contenido para superponer el borde redondeado a la imagen
+    marginTop: -Sizes.padding * 2, 
     padding: Sizes.padding,
-    paddingTop: Sizes.padding * 2, // Espacio interior para que el contenido no quede pegado al borde
+    paddingTop: Sizes.padding * 2, 
   },
- 
   title: {
-    fontSize: 28, // Usamos un tamaño grande para el título (más grande que header/title)
+    fontSize: 28, 
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: Sizes.smallPadding / 2,
@@ -183,50 +233,30 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: Sizes.font,
     fontWeight: '700',
-    color: colors.warning, // 💡 Color para el rating/estrellas
+    color: colors.warning, 
   },
   categoryText: {
     fontSize: Sizes.font,
-    color: colors.lightText, // 💡 Estilo para la categoría
+    color: colors.lightText, 
   },
   deliveryText: {
     fontSize: Sizes.font,
     fontWeight: '600',
-    color: colors.secondary, // 💡 Color de acento para el costo de envío
+    color: colors.secondary, 
     marginBottom: Sizes.padding,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#EEEEEE', // Usamos un gris muy claro
-    marginVertical: Sizes.padding,
-  },
-  sectionTitle: {
-    fontSize: Sizes.title,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: Sizes.smallPadding,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: colors.lightText,
-    marginTop: Sizes.padding,
-  },
-  // Estilos específicos para la integración de TabView
   tabViewWrapper: {
-     height: 800, // Aumenta este valor (ej. 800) para asegurar que el contenido se renderice
     backgroundColor: colors.background, 
-  flex : 1
+    flex : 1
   },
   tabView: {
-    // A veces TabView necesita flex: 1 en su contenedor si no está en ScrollView. 
-    // Aquí usamos altura fija.
     flex : 1
   },
   tabBar: {
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.background,
-    shadowOpacity: 0, // Remover sombra por defecto
+    shadowOpacity: 0, 
     elevation: 0,
     paddingHorizontal: Sizes.padding,
   },
@@ -234,15 +264,6 @@ const styles = StyleSheet.create({
     fontSize: Sizes.font,
     fontWeight: 'bold',
   },
-  tabContentText: {
-    padding: Sizes.padding,
-    fontSize: Sizes.font,
-    textAlign: 'center',
-    color: colors.lightText,
-  },
-  // ... tus estilos anteriores ...
-  
-  // 💡 ESTILOS DEL HEADER FLOTANTE
   customHeader: {
     position: 'absolute',
     left: 0,
@@ -250,17 +271,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: Sizes.padding,
-    zIndex: 100, // Obliga a estar por encima en iOS
-    elevation: 100, // Obliga a estar por encima en Android
+    zIndex: 100, 
+    elevation: 100, 
   },
   headerButtonCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Blanco casi sólido
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     justifyContent: 'center',
     alignItems: 'center',
-    // Sombreado para que resalten más
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

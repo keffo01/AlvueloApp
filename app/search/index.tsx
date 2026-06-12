@@ -24,6 +24,7 @@ import { useSearch } from '../../hooks/useSearch';
 const SearchScreen: React.FC = () => {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
+  
 
   // 💡 Consumimos la API y los Tags dinámicos
   const { establishments, products, popularTags, loading } = useSearch(searchText);
@@ -107,12 +108,7 @@ const SearchScreen: React.FC = () => {
                 <Text style={styles.sectionTitle}>Platos/Productos ({products.length})</Text>
                 {products.length > 0 ? (
                     products.map((p: any) => (
-                        <SearchResultProductCard key={p.productId} product={{
-                            id: p.productId,
-                            name: p.name,
-                            price: p.price,
-                            establishmentName: p.establishmentName
-                        }} />
+                        <SearchResultProductCard key={p.productId} product={p} />
                     ))
                 ) : (
                     <Text style={styles.noResultsText}>No se encontraron productos.</Text>

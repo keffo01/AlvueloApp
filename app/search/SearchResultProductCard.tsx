@@ -1,7 +1,8 @@
 // components/SearchResultProductCard.tsx
 
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProductDetailModal from '@/components/ProductDetailModal';
+import React, { useState } from 'react';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
 
@@ -16,18 +17,36 @@ interface SearchResultProductCardProps {
 
 const SearchResultProductCard: React.FC<SearchResultProductCardProps> = ({ product }) => {
     // 💡 NOTA: Al tocar un producto, podrías abrir el modal de detalle del producto (ProductDetailModal)
-    const handlePress = () => {
-        alert(`Abrir modal de detalle para: ${product.name}`);
-    };
+   
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    
+      const handleOpenModal = () => {
+        setIsModalVisible(true);
+      };
+      
+      const handleCloseModal = () => {
+        setIsModalVisible(false);
+      };
+    
 
     return (
-        <TouchableOpacity style={styles.card} onPress={handlePress}>
+        <><TouchableOpacity style={styles.card} onPress={handleOpenModal}>
             <View style={styles.infoContainer}>
                 <Text style={styles.name}>{product.name}</Text>
                 <Text style={styles.establishmentName}>de {product.establishmentName}</Text>
             </View>
             <Text style={styles.price}>${product.price.toFixed(2)}</Text>
-        </TouchableOpacity>
+        </TouchableOpacity><Modal
+            visible={isModalVisible}
+            onRequestClose={handleCloseModal}
+            animationType="slide"
+            presentationStyle="pageSheet" // Estilo iOS de modal (opcional)
+        >
+                <ProductDetailModal
+                    product={product}
+                    onClose={handleCloseModal}
+                />
+            </Modal></>
     );
 };
 
