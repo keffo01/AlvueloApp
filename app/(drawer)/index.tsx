@@ -9,8 +9,9 @@ import HomeSearchInput from '@/components/search/HomeSearchInput';
 import BannerSlider from '../../components/HomeScreen/BannerSlider';
 import EstablishmentCard from '../../components/HomeScreen/EstablishmentCard';
 import QuickOptions from '../../components/HomeScreen/QuickOption';
-import { MOCK_BANNERS, MOCK_ESTABLISHMENTS, MOCK_PRODUCTS } from '../../constants/mockData';
+import { MOCK_ESTABLISHMENTS, MOCK_PRODUCTS } from '../../constants/mockData';
 import { useAuth } from '../../context/authContext';
+import { useBanners } from '../../hooks/useBanner';
 
 const AppFooter = () => (
   <View style={styles.footerContainer}>
@@ -39,6 +40,7 @@ const SectionTitle: React.FC<{ title: string; subtitle?: string }> = ({ title, s
 const HomeScreen = () => {
   const { userData } = useAuth();
   const userName = userData?.name?.split(' ')[0] || 'Invitado';
+  const { banners, loading, error } = useBanners();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -57,7 +59,7 @@ const HomeScreen = () => {
         </View>
 
         <View style={styles.bannerContainer}>
-          <BannerSlider banners={MOCK_BANNERS} />
+          <BannerSlider banners={banners} />
         </View>
 
         <View style={styles.sectionMargin}>

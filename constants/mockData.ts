@@ -66,14 +66,6 @@ export const MOCK_BANNERS: Banner[] = [
 ];
 
 
-export const MOCK_OPTIONS: QuickOption[] = [
-  { id: 'o1', name: 'Supermercado', iconName: 'basket', targetScreen: 'Supermarket' },
-  { id: 'o2', name: 'Restaurantes', iconName: 'restaurant', targetScreen: 'Restaurants' },
-//  { id: 'o3', name: 'Farmacias', iconName: 'bandage', targetScreen: 'Pharmacies' },
- // { id: 'o4', name: 'Panaderías', iconName: 'storefront', targetScreen: 'Bakeries' },
-  { id: 'o5', name: 'Mandaditos', iconName: 'flash', targetScreen: 'Delivery' },
-];
-
 // constants/mockData.ts (Añadir o modificar)
 
 // Lista de Establecimientos más grande y con categorías
