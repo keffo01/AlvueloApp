@@ -1,11 +1,9 @@
 // components/ProductDetailModal.tsx
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ImageBackground,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -74,7 +72,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     // Protección: Si hay opciones obligatorias vacías, podrías validar aquí.
     console.log("INTENTANDO AGREGAR:", {
         productId: product.productId,
-        establishmentId: establishmentId, // <--- ¿ESTO IMPRIME UNDEFINED?
+        establishmentId: establishmentId,
         price: product.price
     });
 
@@ -91,8 +89,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     } as any); 
   };
 
-  // 3. NUEVA LÓGICA PARA EL BOTÓN +
-  // Si el item no está en el carrito, el botón '+' debe AÑADIRLO, no incrementarlo.
+  // 3. LÓGICA PARA EL BOTÓN +
   const handleIncrement = () => {
       if (quantity === 0) {
           handleAddToCart();
@@ -102,7 +99,6 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   };
 
   return (
-        // Quitamos SafeAreaView de aquí y usamos View normal con padding manual en el footer
         <View style={styles.container}> 
             
             <View style={[styles.header, { top: insets.top + 10 }]}>
@@ -111,7 +107,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </TouchableOpacity>
             </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <ImageBackground 
                 source={{ uri: product.imageUri }} 
                 style={styles.imagePlaceholder}
@@ -125,23 +121,33 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             {product.description || "Descripción detallada del producto."}
           </Text>
           
-          {/* SECCIÓN DE OPCIONES */}
+          {/* SECCIÓN DE OPCIONES: Ahora con Radio Buttons */}
           <Text style={styles.optionsTitle}>Opciones Adicionales</Text>
           <View style={styles.optionsContainer}> 
             {Object.keys(product.options || {}).filter(key => key.includes('Complemento')).map(group => (
                 <View key={group} style={styles.optionGroup}>
-                    <Text style={styles.pickerLabel}>{group}:</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={selectedOptions[group]}
-                            onValueChange={(itemValue: string) => handleOptionChange(group, itemValue)}
-                            style={styles.picker}
-                            itemStyle={Platform.OS === 'ios' ? styles.pickerItem : undefined}
-                        >
-                            {(product.options![group] as string[]).map((option: string) => (
-                                <Picker.Item key={option} label={option} value={option} />
-                            ))}
-                        </Picker>
+                    <Text style={styles.radioGroupLabel}>{group}:</Text>
+                    <View style={styles.radioGroupContainer}>
+                        {(product.options![group] as string[]).map((option: string) => {
+                            const isSelected = selectedOptions[group] === option;
+                            return (
+                                <TouchableOpacity 
+                                    key={option} 
+                                    style={styles.radioOption}
+                                    onPress={() => handleOptionChange(group, option)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons 
+                                        name={isSelected ? "radio-button-on" : "radio-button-off"} 
+                                        size={22} 
+                                        color={isSelected ? Colors.primary : Colors.lightText} 
+                                    />
+                                    <Text style={[styles.radioText, isSelected && styles.radioTextSelected]}>
+                                        {option}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                 </View>
             ))}
@@ -153,13 +159,11 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       {/* 4. FOOTER CORREGIDO: Padding bottom dinámico */}
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         
-        {/* Solo mostramos controles +/- si ya hay al menos 1 elemento, o permitimos que el usuario empiece a sumar desde 0 visualmente */}
         <View style={styles.priceAndQuantityContainer}>
           <View style={styles.quantityControl}>
             <TouchableOpacity 
                 onPress={() => decrementQuantity(product.productId)}
                 style={styles.quantityButton}
-                // Deshabilitar el menos si es 0
                 disabled={quantity === 0}
             >
               <Ionicons 
@@ -172,7 +176,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <Text style={styles.quantityText}>{quantity}</Text>
             
             <TouchableOpacity 
-                onPress={handleIncrement} // Usamos la nueva función inteligente
+                onPress={handleIncrement} 
                 style={styles.quantityButton}
             >
               <Ionicons name="add" size={Sizes.font} color={Colors.text} />
@@ -181,11 +185,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         </View>
 
         <TouchableOpacity 
-          style={[
-              styles.addButton, 
-              // Deshabilitar visualmente si es necesario, pero mejor dejarlo activo para "Actualizar"
-              { opacity: 1 } 
-          ]} 
+          style={styles.addButton} 
           onPress={handleAddToCart}
         >
           <Text style={styles.addButtonText}>
@@ -205,11 +205,10 @@ const styles = StyleSheet.create({
   header: {
       position: 'absolute',
       right: Sizes.smallPadding,
-      zIndex: 100, // Asegura que esté por encima de la imagen
+      zIndex: 100, 
       backgroundColor: 'transparent'
   },
   closeButton: {
-    // Estilos extra si se requieren
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -217,11 +216,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scrollContent: {
-    paddingBottom: 140, // Un poco más de espacio para el footer
+    paddingBottom: 140, 
   },
   imagePlaceholder: {
     width: '100%',
-    height: 250, // Un poco más alto se ve mejor
+    height: 250, 
     backgroundColor: '#f0f0f0',
     marginBottom: Sizes.padding,
   },
@@ -241,7 +240,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.primary, // Cambiado a Primary para resaltar
+    color: Colors.primary, 
     marginVertical: 4,
   },
   description: {
@@ -255,39 +254,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
     marginTop: 10,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   optionsContainer: {
       marginBottom: Sizes.padding,
   },
   optionGroup: {
-      marginBottom: 12,
+      marginBottom: 16,
   },
-  pickerLabel: {
-      fontSize: 14,
+  /* NUEVOS ESTILOS PARA RADIO BUTTONS */
+  radioGroupLabel: {
+      fontSize: 15,
       fontWeight: '600',
       color: Colors.text,
-      marginBottom: 4,
+      marginBottom: 10,
   },
-  pickerContainer: {
+  radioGroupContainer: {
+      backgroundColor: '#F9FAFB',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
       borderWidth: 1,
-      borderColor: '#DDD',
-      borderRadius: 8,
-      backgroundColor: '#FAFAFA',
-      overflow: 'hidden',
-      height: Platform.OS === 'android' ? 50 : undefined, // Altura fija en Android ayuda
-      justifyContent: 'center',
+      borderColor: '#EFEFEF',
   },
-  picker: {
-      width: '100%',
-      // En Android el color por defecto a veces es blanco sobre blanco, forzamos negro
-      color: Colors.text, 
+  radioOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
   },
-  pickerItem: {
-      fontSize: 16,
+  radioText: {
+      fontSize: 15,
       color: Colors.text,
-      height: 120, // Altura para iOS
+      marginLeft: 12,
   },
+  radioTextSelected: {
+      fontWeight: '600',
+      color: Colors.text,
+  },
+  /* ESTILOS DEL FOOTER */
   footer: {
     position: 'absolute',
     bottom: 0,
@@ -300,7 +304,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // Sombras para que destaque sobre el contenido scrolleable
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -315,7 +318,7 @@ const styles = StyleSheet.create({
   quantityControl: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F0F0', // Fondo gris suave para los controles
+    backgroundColor: '#F0F0F0',
     borderRadius: 8,
     padding: 4,
   },
