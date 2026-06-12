@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -12,59 +13,27 @@ import {
   View
 } from 'react-native';
 
-import { Product } from '@/models/commons.model';
 import Colors from '../../constants/colors';
-import {
-  MOCK_ALL_ESTABLISHMENTS,
-  MOCK_PRODUCTS
-} from '../../constants/mockData';
 import Sizes from '../../constants/Sizes';
 import SearchResultEstablishment from './SearchResultEstablishment';
 import SearchResultProductCard from './SearchResultProductCard';
 
-interface SearchResultProduct extends Product {
-    establishmentName: string;
-}
+// Importamos el nuevo Hook
+import { useSearch } from '../../hooks/useSearch';
 
 const SearchScreen: React.FC = () => {
   const router = useRouter();
   const [searchText, setSearchText] = useState('');
 
-  const recentSearches = ['Pupusas', 'Pizza', 'Farmacia', 'Pollo'];
-
-  const { filteredEstablishments, filteredProducts } = useMemo(() => {
-    if (searchText.length < 3) {
-        return { filteredEstablishments: [], filteredProducts: [] }; 
-    }
-    
-    const query = searchText.toLowerCase();
-
-    const estResults = MOCK_ALL_ESTABLISHMENTS.filter(e => 
-        e.name.toLowerCase().includes(query) || 
-        e.description?.toLowerCase().includes(query) ||
-        e.tags?.some(tag => tag.toLowerCase().includes(query))
-    );
-
-    const prodResults: SearchResultProduct[] = MOCK_PRODUCTS
-        .filter(p => p.name.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query))
-        .map(p => {
-            const establishment = MOCK_ALL_ESTABLISHMENTS.find(e => e.id === p.establishment.id);
-            return {
-                ...p,
-                establishmentName: establishment ? establishment.name : 'Desconocido',
-            };
-        });
-
-    return { filteredEstablishments: estResults, filteredProducts: prodResults };
-  }, [searchText]);
+  // 💡 Consumimos la API y los Tags dinámicos
+  const { establishments, products, popularTags, loading } = useSearch(searchText);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* 💡 HEADER MODERNO */}
+      {/* HEADER MODERNO */}
       <View style={styles.header}>
-        {/* Si vienes desde la Home, este botón te permite regresar. Si es un tab principal, puedes ocultarlo */}
         {router.canGoBack() && (
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={Colors.text} />
@@ -99,12 +68,17 @@ const SearchScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled" 
       >
-        {/* 💡 VISTA INICIAL (Menos de 3 letras) */}
-        {searchText.length < 3 ? (
+        {/* ESTADO 1: Cargando */}
+        {loading && searchText.length >= 3 ? (
+            <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 40 }} />
+        ) : 
+        
+        /* ESTADO 2: Sin búsqueda (Tags dinámicos) */
+        searchText.length < 3 ? (
             <View style={styles.recentContainer}>
               <Text style={styles.sectionTitleModern}>Búsquedas populares</Text>
               <View style={styles.chipsContainer}>
-                {recentSearches.map((item, index) => (
+                {popularTags.map((item, index) => (
                   <TouchableOpacity 
                     key={index} 
                     style={styles.chip}
@@ -117,11 +91,11 @@ const SearchScreen: React.FC = () => {
               </View>
             </View>
         ) : (
-            
+            /* ESTADO 3: Resultados de la API */
             <>
-                <Text style={styles.sectionTitle}>Locales ({filteredEstablishments.length})</Text>
-                {filteredEstablishments.length > 0 ? (
-                    filteredEstablishments.map(e => (
+                <Text style={styles.sectionTitle}>Locales ({establishments.length})</Text>
+                {establishments.length > 0 ? (
+                    establishments.map((e: any) => (
                         <SearchResultEstablishment key={e.id} establishment={e} />
                     ))
                 ) : (
@@ -130,9 +104,9 @@ const SearchScreen: React.FC = () => {
 
                 <View style={styles.sectionDivider} />
 
-                <Text style={styles.sectionTitle}>Platos/Productos ({filteredProducts.length})</Text>
-                {filteredProducts.length > 0 ? (
-                    filteredProducts.map(p => (
+                <Text style={styles.sectionTitle}>Platos/Productos ({products.length})</Text>
+                {products.length > 0 ? (
+                    products.map((p: any) => (
                         <SearchResultProductCard key={p.productId} product={{
                             id: p.productId,
                             name: p.name,
@@ -149,6 +123,8 @@ const SearchScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
+
+// ... Mantén tus mismos styles de StyleSheet aquí abajo ...
 
 const styles = StyleSheet.create({
   safeArea: {
