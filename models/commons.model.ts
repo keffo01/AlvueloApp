@@ -31,7 +31,7 @@ export interface Product {
   description: string;
   price: number;
   imageUri: string; // URL de la imagen del producto
-  category: 'Bebida' | 'Combo' | 'Accesorio';
+  category: string; // Ejemplo: 'Combo', 'Bebida', etc.
   establishment : EstablishmentReference;
  // 💡 Nueva estructura de opciones
   options?: {

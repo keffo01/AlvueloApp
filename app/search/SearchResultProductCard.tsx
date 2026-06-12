@@ -8,16 +8,24 @@ import Sizes from '../../constants/Sizes';
 
 interface SearchResultProductCardProps {
     product: {
-        id: string;
+       category: string;
+       description: string;
+       establishment : {
+      id: string;
         name: string;
-        price: number;
-        establishmentName: string; // Nombre del local
+        deliveryCost: number;
+       };
+       establishmentName: string;
+       id: string;
+       imageUri: string;
+       name: string;
+       price: number;
     };
 }
 
 const SearchResultProductCard: React.FC<SearchResultProductCardProps> = ({ product }) => {
     // 💡 NOTA: Al tocar un producto, podrías abrir el modal de detalle del producto (ProductDetailModal)
-   
+   console.log('Producto seleccionado:', product); // Para verificar que el producto se recibe correctamente
     const [isModalVisible, setIsModalVisible] = useState(false);
     
       const handleOpenModal = () => {
@@ -36,17 +44,22 @@ const SearchResultProductCard: React.FC<SearchResultProductCardProps> = ({ produ
                 <Text style={styles.establishmentName}>de {product.establishmentName}</Text>
             </View>
             <Text style={styles.price}>${product.price.toFixed(2)}</Text>
-        </TouchableOpacity><Modal
+        </TouchableOpacity>
+        
+        <Modal
             visible={isModalVisible}
             onRequestClose={handleCloseModal}
             animationType="slide"
             presentationStyle="pageSheet" // Estilo iOS de modal (opcional)
         >
-                <ProductDetailModal
-                    product={product}
-                    onClose={handleCloseModal}
-                />
-            </Modal></>
+                        {/* Map the lightweight search product to the full Product shape expected by ProductDetailModal */}
+                        <ProductDetailModal
+                    product={product as any} // Usamos 'as any' para evitar conflictos de tipos estrictos, pero idealmente deberías adaptar tu modelo de producto para que sea compatible
+                    onClose={handleCloseModal} 
+                    deliveryCost={product.establishment.deliveryCost} 
+                    establishmentId={product.establishment.id}                        />
+            </Modal>
+            </>
     );
 };
 
