@@ -1,50 +1,49 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Sizes from '../../constants/Sizes';
 import colors from '../../constants/colors';
 
-// Componentes y Modelos
-import { MOCK_ALL_QUICK_OPTIONS } from '@/constants/mockData';
+// Importa el modelo y el servicio real
 import { Establishment } from '@/models/commons.model';
-import { Ionicons } from '@expo/vector-icons';
-
+import { fetchEstablishmentsByCategory } from '../../services/quickOption.service';
 const EstablishmentListScreen: React.FC = () => {
   const { category: categoryId } = useLocalSearchParams();
   const categoryName = Array.isArray(categoryId) ? categoryId[0] : categoryId || 'Establecimientos';
 
-  // Estados para Rendimiento y AWS
+  // Estados
   const [establishments, setEstablishments] = useState<Establishment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   
-  // 💡 Lógica de Carga con Paginación (Preparada para AWS)
+  // 💡 ESTADO CLAVE PARA DYNAMODB: El LastEvaluatedKey
+  const [lastEvaluatedKey, setLastEvaluatedKey] = useState<any>(null);
+
   const loadEstablishments = async (isInitial = false) => {
     if (loading || (!hasMore && !isInitial)) return;
 
     setLoading(true);
     
     try {
-      // SIMULACIÓN DE PETICIÓN AWS: 
-      // Aquí filtrarás en el backend. Por ahora filtramos el Mock localmente.
-      const allFiltered = MOCK_ALL_QUICK_OPTIONS.filter((est: { category: string; }) => est.category === categoryName);
+      // Usamos el key guardado en el estado o null si es la carga inicial
+      const currentKey = isInitial ? null : lastEvaluatedKey;
       
-      // Simulamos paginación de 5 en 5
-      const start = isInitial ? 0 : (page - 1) * 5;
-      const end = start + 5;
-      const paginatedItems = allFiltered.slice(start, end);
+      // Llamada real al servicio conectado a AWS
+      const response = await fetchEstablishmentsByCategory(categoryName, currentKey);
 
       if (isInitial) {
-        setEstablishments(paginatedItems);
-        setPage(2);
+        setEstablishments(response.items);
       } else {
-        setEstablishments(prev => [...prev, ...paginatedItems]);
-        setPage(prev => prev + 1);
+        setEstablishments(prev => [...prev, ...response.items]);
       }
 
-      if (end >= allFiltered.length) setHasMore(false);
+      // DynamoDB devuelve lastEvaluatedKey si hay más elementos. Si viene null/undefined, ya no hay más.
+      setLastEvaluatedKey(response.lastEvaluatedKey);
+      if (!response.lastEvaluatedKey) {
+        setHasMore(false);
+      }
       
     } catch (error) {
       console.error("Error cargando establecimientos:", error);
@@ -53,134 +52,122 @@ const EstablishmentListScreen: React.FC = () => {
     }
   };
 
-   const handleOpenModal = (establishmentId: string) => {
-      console.log("Abrir modal para categoría:", categoryName, "con establecimientos:", establishmentId);
-      if (categoryId === 'restaurantes' || categoryId === 'farmacia' || categoryId === 'super') {
-        router.push(`/establishment/${establishmentId }` as any);
-      }else {
-        // Lógica para abrir modal de establecimiento o producto
-        setIsModalVisible(true);
-      }
-    };
-    
-    const handleCloseModal = () => {
-      setIsModalVisible(false);
-    };
+  const handleOpenModal = (establishmentId: string) => {
+    if (['restaurantes', 'farmacia', 'super'].includes(categoryName)) {
+      router.push(`/establishment/${establishmentId}` as any);
+    } else {
+      setIsModalVisible(true);
+    }
+  };
+
+  const handleCloseModal = () => setIsModalVisible(false);
 
   useEffect(() => {
+    // Al cambiar la categoría, reseteamos todo y cargamos desde el inicio
+    setEstablishments([]);
+    setLastEvaluatedKey(null);
+    setHasMore(true);
     loadEstablishments(true);
   }, [categoryName]);
 
- // Dentro de app/[category]/index.tsx
+  const renderEstablishment = useCallback(({ item }: { item: Establishment }) => {
+    const isProductFocus = categoryName === 'combos' || categoryName === 'super';
 
-const renderEstablishment  = useCallback(({ item }: { item: Establishment }) => {
-  // 💡 Lógica de decisión visual
-  const isProductFocus = categoryName === 'combos' || categoryName === 'super';
-
-  return (
-    <TouchableOpacity 
-      style={styles.cardWrapper} 
-      onPress={() => handleOpenModal(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={isProductFocus ? styles.productCard : styles.establishmentRow}>
-        
-        {/* IMAGEN: Grande para combos, tipo logo para locales */}
-        <Image 
-          source={{ uri: item.imageUri }} 
-          style={isProductFocus ? styles.productImage : styles.establishmentLogo} 
-        />
-
-        <View style={styles.infoContainer}>
-          <View style={styles.headerRow}>
-            <Text style={styles.nameText} numberOfLines={1}>{item.name}</Text>
-            <View style={styles.ratingBadge}>
-              <Ionicons name="star" size={12} color="#FFB800" />
-              <Text style={styles.ratingText}>{item.rating}</Text>
+    return (
+      <TouchableOpacity 
+        style={styles.cardWrapper} 
+        onPress={() => handleOpenModal(item.id)}
+        activeOpacity={0.7}
+      >
+        <View style={isProductFocus ? styles.productCard : styles.establishmentRow}>
+          <Image 
+            source={{ uri: item.imageUri }} 
+            style={isProductFocus ? styles.productImage : styles.establishmentLogo} 
+          />
+          <View style={styles.infoContainer}>
+            <View style={styles.headerRow}>
+              <Text style={styles.nameText} numberOfLines={1}>{item.name}</Text>
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={12} color="#FFB800" />
+                <Text style={styles.ratingText}>{item.rating}</Text>
+              </View>
             </View>
-          </View>
 
-          {/* TAGS / CATEGORÍAS */}
-          <Text style={styles.tagsText} numberOfLines={1}>
-            {item?.tags?.join(' • ')}
-          </Text>
+            <Text style={styles.tagsText} numberOfLines={1}>
+              {item?.tags?.join(' • ')}
+            </Text>
 
-          {/* PIE DE TARJETA: Tiempo y Costo */}
-          <View style={styles.detailsRow}>
-            <View style={styles.iconInfo}>
-              <Ionicons name="time-outline" size={14} color={colors.lightText} />
-              <Text style={styles.detailText}>{item.deliveryTime}</Text>
-            </View>
-            <View style={[styles.iconInfo, { marginLeft: 12 }]}>
-              <Ionicons name="bicycle-outline" size={14} color={colors.lightText} />
-              <Text style={styles.detailText}>
-                {item.deliveryCost === 0 ? 'Gratis' : `$${item.deliveryCost.toFixed(2)}`}
-              </Text>
+            <View style={styles.detailsRow}>
+              <View style={styles.iconInfo}>
+                <Ionicons name="time-outline" size={14} color={colors.lightText} />
+                <Text style={styles.detailText}>{item.deliveryTime || '30-45 min'}</Text>
+              </View>
+              <View style={[styles.iconInfo, { marginLeft: 12 }]}>
+                <Ionicons name="bicycle-outline" size={14} color={colors.lightText} />
+                <Text style={styles.detailText}>
+                  {item.deliveryCost === 0 ? 'Gratis' : `$${Number(item.deliveryCost).toFixed(2)}`}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-}, [categoryName]);
+      </TouchableOpacity>
+    );
+  }, [categoryName]);
 
   return (
     <>
-    <View style={styles.container}>
-      <Stack.Screen 
-        options={{ 
-          title:' '+ categoryName.charAt(0).toUpperCase() + categoryName.slice(1), 
-          headerBackTitle: 'Inicio',
-          headerTintColor: '#000',
-          headerTitleStyle: { fontWeight: 'bold' }
-        }} 
-      />
-      
-      <FlatList
-        data={establishments}
-        renderItem={renderEstablishment}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+      <View style={styles.container}>
+        <Stack.Screen 
+          options={{ 
+            title: ' ' + categoryName.charAt(0).toUpperCase() + categoryName.slice(1), 
+            headerBackTitle: 'Inicio',
+            headerTintColor: '#000',
+            headerTitleStyle: { fontWeight: 'bold' }
+          }} 
+        />
         
-        
-        onEndReached={() => loadEstablishments()}
-        onEndReachedThreshold={0.5}
-        
-    
-        ListFooterComponent={
-          loading && hasMore ? (
-            <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
-          ) : null
-        }
-        
-    
-        ListEmptyComponent={
-          !loading ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                No hay establecimientos en la categoría "{categoryName}".
-              </Text>
-            </View>
-          ) : null
-        }
-      />
-    </View>
-    <Modal
+        <FlatList
+          data={establishments}
+          renderItem={renderEstablishment}
+          keyExtractor={(item, index) => item.id || index.toString()}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          onEndReached={() => loadEstablishments(false)} // false porque no es inicial
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading && hasMore ? (
+              <ActivityIndicator color={colors.primary} style={{ marginVertical: 20 }} />
+            ) : null
+          }
+          ListEmptyComponent={
+            !loading ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No hay establecimientos en la categoría "{categoryName}".
+                </Text>
+              </View>
+            ) : null
+          }
+        />
+      </View>
+
+      <Modal
         visible={isModalVisible}
         onRequestClose={handleCloseModal}
         animationType="slide"
         presentationStyle="pageSheet"
       >
-       <TouchableOpacity onPress={handleCloseModal} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 18, marginBottom: 20 }}>Detalle del Producto</Text>
+        <TouchableOpacity onPress={handleCloseModal} style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, marginBottom: 20 }}>Detalle de {categoryName}</Text>
           <Ionicons name="close-circle" size={36} color={colors.text} />
         </TouchableOpacity>
       </Modal>
     </>
-    
   );
 };
+
+// ... (Los estilos se mantienen exactamente igual que en tu código original)
 
 const styles = StyleSheet.create({
   container: {
