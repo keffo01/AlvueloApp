@@ -16,6 +16,7 @@ import { Product } from '../models/commons.model';
 // 💡 Asegúrate de importar el servicio correctamente
 import { fetchCarouselProducts } from '../services/product-carousel.service';
 
+
 interface ProductCarouselProps {
   interval?: number;
 }
