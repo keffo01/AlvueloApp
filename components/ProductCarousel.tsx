@@ -1,34 +1,62 @@
 // components/ProductCarousel.tsx
 
 import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  View
+} from 'react-native';
 import ProductCard from '../components/HomeScreen/ProductCard';
 import Colors from '../constants/colors';
 import Sizes from '../constants/Sizes';
 import { Product } from '../models/commons.model';
+// 💡 Asegúrate de importar el servicio correctamente
+import { fetchCarouselProducts } from '../services/product-carousel.service';
 
 interface ProductCarouselProps {
-  products: Product[];
   interval?: number;
 }
 
-const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, interval = 5000 }) => {
+const ProductCarousel: React.FC<ProductCarouselProps> = ({ interval = 5000 }) => {
+  // Estados para manejar los datos y la carga
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  
   const flatListRef = useRef<FlatList<Product>>(null); 
   
-  // 💡 Ajuste de dimensiones: Un poco más estrecho para dejar ver la siguiente tarjeta
-  // Esto invita al usuario a hacer scroll manualmente.
   const CARD_WIDTH = 260; 
   const SPACING = 12;
   const ITEM_SIZE = CARD_WIDTH + SPACING;
 
+  // 1. Efecto para cargar los datos desde la API al iniciar
   useEffect(() => {
+    const loadFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchCarouselProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error al cargar el carrusel", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFeaturedProducts();
+  }, []);
+
+  // 2. Efecto para el auto-scroll
+  useEffect(() => {
+    // Si no hay datos o hay solo 1, no hace falta el scroll automático
     if (products.length <= 1) return;
 
     const timer = setInterval(() => {
       const nextIndex = (currentIndex + 1) % products.length;
       
-      // Solo hacemos scroll automático si el usuario no está interactuando
       flatListRef.current?.scrollToOffset({
         offset: nextIndex * ITEM_SIZE,
         animated: true,
@@ -40,7 +68,7 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, interval = 
     return () => clearInterval(timer);
   }, [currentIndex, products.length, interval]);
 
-  // Manejador para actualizar el índice cuando el usuario hace scroll manual
+  // Manejador para el scroll manual
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollOffset = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollOffset / ITEM_SIZE);
@@ -51,14 +79,27 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, interval = 
 
   const renderProductItem = ({ item }: { item: Product }) => (
     <View style={styles.cardWrapper}>
-      {/* Pasamos props mockeados para evitar errores si el modelo lo requiere */}
       <ProductCard 
         product={item} 
-        establishmentId={item.establishment.id || '0'} 
-        deliveryCost={item.establishment.deliveryCost || 0} 
+        establishmentId={item.establishment?.id || '0'} 
+        deliveryCost={item.establishment?.deliveryCost || 0} 
       />
     </View>
   );
+
+  // Pantalla de carga mientras se obtienen los datos de DynamoDB
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  // Si después de cargar no hay productos, no renderizamos nada (oculta el componente)
+  if (products.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -69,16 +110,14 @@ const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, interval = 
         keyExtractor={(item) => item.productId}
         horizontal
         showsHorizontalScrollIndicator={false}
-        snapToInterval={ITEM_SIZE} // Detenerse exactamente en la tarjeta
+        snapToInterval={ITEM_SIZE}
         decelerationRate="fast"
         onScroll={onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={styles.listContent}
-        // Esto permite que la primera tarjeta se alinee con el título, 
-        // pero que al final haya espacio para que la última no pegue al borde.
       />
       
-      {/* Indicador de progreso minimalista (Línea delgada) */}
+      {/* Indicador de progreso minimalista */}
       <View style={styles.indicatorContainer}>
         {products.map((_, i) => (
           <View 
@@ -98,15 +137,19 @@ const styles = StyleSheet.create({
   container: {
     marginVertical: 10,
   },
+  loadingContainer: {
+    height: 250, // Aproximadamente el alto de la tarjeta para evitar saltos bruscos de UI
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
   listContent: {
     paddingHorizontal: Sizes.padding,
-    paddingBottom: 15, // Espacio para que la sombra de ProductCard no se corte
+    paddingBottom: 15,
   },
   cardWrapper: {
-    width: 260, // Mismo ancho que CARD_WIDTH
-    marginRight: 12, // Mismo que SPACING
-    // Aquí podrías añadir una transformación de escala si quisieras que
-    // la tarjeta central se vea más grande
+    width: 260,
+    marginRight: 12,
   },
   indicatorContainer: {
     flexDirection: 'row',
@@ -122,7 +165,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   activeDot: {
-    width: 12, // Se estira un poco
+    width: 12,
     backgroundColor: Colors.primary,
   }
 });

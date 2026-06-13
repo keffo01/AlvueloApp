@@ -6,13 +6,11 @@ import Sizes from '../../constants/Sizes';
 
 import ProductCarousel from '@/components/ProductCarousel';
 import HomeSearchInput from '@/components/search/HomeSearchInput';
+import FeaturedEstablishments from '@/components/stablishment/featuredEstablishment';
 import BannerSlider from '../../components/HomeScreen/BannerSlider';
-import EstablishmentCard from '../../components/HomeScreen/EstablishmentCard';
 import QuickOptions from '../../components/HomeScreen/QuickOption';
-import { MOCK_ESTABLISHMENTS, MOCK_PRODUCTS } from '../../constants/mockData';
 import { useAuth } from '../../context/authContext';
 import { useBanners } from '../../hooks/useBanner';
-
 const AppFooter = () => (
   <View style={styles.footerContainer}>
     <View style={styles.footerLine} />
@@ -69,17 +67,17 @@ const HomeScreen = () => {
 
         <View style={styles.sectionMargin}>
           <SectionTitle title="Destacados de hoy" subtitle="Las mejores opciones elegidas para ti" />
-          <ProductCarousel products={MOCK_PRODUCTS} interval={4500} />
+          <ProductCarousel interval={4500} />
         </View>
 
         {/* SECCIÓN 5: Restaurantes */}
+        {/* SECCIÓN 5: Restaurantes / Favoritos de la zona */}
         <View style={styles.sectionMargin}>
           <SectionTitle title="Favoritos de la zona" />
-          <View style={styles.establishmentList}>
-            {MOCK_ESTABLISHMENTS.map((est) => (
-              <EstablishmentCard key={est.id} establishment={est} />
-            ))}
-          </View>
+          
+          {/* ✅ Usamos el nuevo contenedor que maneja su propia lógica de base de datos */}
+          <FeaturedEstablishments />
+          
         </View>
 
         {/* 🚀 NUEVA SECCIÓN: FOOTER DE CIERRE */}
