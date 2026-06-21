@@ -2,6 +2,7 @@
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser'; // 💡 NUEVO: Importación del navegador interno
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -9,7 +10,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -18,39 +18,33 @@ import { orderService } from '@/services/order.service';
 import { UserService } from '@/services/user.service';
 import Colors from '../../constants/colors';
 import Sizes from '../../constants/Sizes';
-import { useAuth } from '../../context/authContext'; // 💡 Asegura esta ruta
+import { useAuth } from '../../context/authContext';
 import { useCart } from '../../context/CartContext';
 
 const MOCK_DELIVERY_COST = 1.50; 
 
 const CheckoutScreen: React.FC = () => {
-  // 1. Extraemos cartItems además de subtotal
   const { cart, subtotal, clearCart } = useCart();
   const { userData, updateUserData } = useAuth();
   const navigation = useRouter();
   
-  // --- ESTADOS ---
   // Direcciones
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Pagos
+  // Pagos (Eliminamos el estado cardDetails por seguridad)
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | null>(null);
-  const [cardDetails, setCardDetails] = useState({ number: '', name: '', expiry: '', cvv: '' });
 
-  // Calcular el total final
   const total = useMemo(() => subtotal + MOCK_DELIVERY_COST, [subtotal]);
 
-  // --- OBTENER DIRECCIONES ---
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
         setLoadingAddresses(true);
-      const email = userData?.email || '';
-             const data = await UserService.getProfile(email);
-             
+        const email = userData?.email || '';
+        const data = await UserService.getProfile(email);
         setTimeout(() => {
           setAddresses(data.addressData || []);
           setLoadingAddresses(false);
@@ -63,122 +57,112 @@ const CheckoutScreen: React.FC = () => {
     if (userData?.email) fetchAddresses();
   }, [userData?.email]);
 
-  // --- MANEJADOR DE ORDEN ---
- // 2. Reemplaza tu handlePlaceOrder actual con este:
-// 2. Reemplaza tu handlePlaceOrder actual con este:
-const handlePlaceOrder = async () => {
-  // Validaciones iniciales
-  if (!selectedAddressId) return Alert.alert("Faltan datos", "Por favor, selecciona una dirección de entrega.");
-  if (!paymentMethod) return Alert.alert("Faltan datos", "Por favor, selecciona un método de pago.");
-  
-  if (paymentMethod === 'card') {
-    if (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv) {
-      return Alert.alert("Datos incompletos", "Por favor, llena todos los datos de la tarjeta.");
-    }
-  }
-
-  try {
-    setIsProcessing(true); // Bloqueamos el botón
-
-    // 💡 NUEVO: Agrupamos los items por su respectivo restaurante
-    const groupedItems = cart.reduce((acc: any, item: any) => {
-      const estId = item.establishment?.id || "N/A";
-      const estName = item.establishment?.name || "Comercio Desconocido";
-
-      // Si el restaurante aún no existe en nuestro acumulador, lo creamos
-      if (!acc[estId]) {
-        acc[estId] = {
-          restaurantId: estId,
-          restaurantName: estName,
-          items: []
-        };
-      }
-
-      // Agregamos el platillo al restaurante correspondiente
-      acc[estId].items.push({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price
-      });
-
-      return acc;
-    }, {});
-
-    // Convertimos el objeto agrupado en un arreglo limpio
-    const groupedRestaurants = Object.values(groupedItems);
-
-    // Buscamos el texto exacto de la dirección seleccionada
-    const fullAddress = addresses.find(a => a.id === selectedAddressId)?.name +' '+ addresses.find(a => a.id === selectedAddressId)?.reference || selectedAddressId;
-
-    // 📦 ARMAMOS EL PAQUETE (Estructura actualizada)
-    const orderPayload = {
-      email: userData?.email,
-      orderData: {
-        // En lugar de una lista plana, enviamos la lista agrupada Comercio -> Items
-        restaurants: groupedRestaurants, 
-        subtotal: subtotal,
-        deliveryCost: MOCK_DELIVERY_COST,
-        total: total,
-        deliveryAddress: fullAddress,
-        paymentMethod: paymentMethod,
-      },
-      customerData: {
-        name: userData?.name || "Cliente",
-        phone: userData?.phoneNumber || "",
-      },
-      // Guardamos un arreglo con todos los comercios involucrados en la orden
-      restaurantData: groupedRestaurants.map((g: any) => ({
-        id: g.restaurantId,
-        name: g.restaurantName
-      }))
-    };
-
-    // 🚀 ENVIAMOS A API GATEWAY
-    const response = await orderService.createOrder(orderPayload);
+  const handlePlaceOrder = async () => {
+    if (!selectedAddressId) return Alert.alert("Faltan datos", "Por favor, selecciona una dirección de entrega.");
+    if (!paymentMethod) return Alert.alert("Faltan datos", "Por favor, selecciona un método de pago.");
     
-    const newOrderLocal = {
+    try {
+      setIsProcessing(true);
+
+      const groupedItems = cart.reduce((acc: any, item: any) => {
+        const estId = item.establishment?.id || "N/A";
+        const estName = item.establishment?.name || "Comercio Desconocido";
+
+        if (!acc[estId]) {
+          acc[estId] = { restaurantId: estId, restaurantName: estName, items: [] };
+        }
+        acc[estId].items.push({ id: item.id, name: item.name, quantity: item.quantity, price: item.price });
+        return acc;
+      }, {});
+
+      const groupedRestaurants = Object.values(groupedItems);
+      const fullAddress = addresses.find(a => a.id === selectedAddressId)?.name +' '+ addresses.find(a => a.id === selectedAddressId)?.reference || selectedAddressId;
+
+      const orderPayload = {
+        email: userData?.email,
+        orderData: {
+          restaurants: groupedRestaurants, 
+          subtotal: subtotal,
+          deliveryCost: MOCK_DELIVERY_COST,
+          total: total,
+          deliveryAddress: fullAddress,
+          paymentMethod: paymentMethod,
+        },
+        customerData: {
+          name: userData?.name || "Cliente",
+          phone: userData?.phoneNumber || "",
+        },
+        restaurantData: groupedRestaurants.map((g: any) => ({
+          id: g.restaurantId,
+          name: g.restaurantName
+        }))
+      };
+
+      // 1. Crear la orden primero en tu Backend/AWS
+      const response = await orderService.createOrder(orderPayload);
+      
+      const newOrderLocal = {
         orderId: response.orderId,
         createdAt: new Date().toISOString(),
-        orderStatus: "inicio",
+        orderStatus: paymentMethod === 'card' ? "pendiente_pago" : "inicio", // Estado condicional
         orderData: orderPayload.orderData,
         restaurantData: orderPayload.restaurantData,
         customerData: orderPayload.customerData
       };
-      
-    const updatedOrders = userData?.orders ? [...userData.orders, newOrderLocal] : [newOrderLocal];
-      
-    updateUserData({ orders: updatedOrders });
+        
+      const updatedOrders = userData?.orders ? [...userData.orders, newOrderLocal] : [newOrderLocal];
+      updateUserData({ orders: updatedOrders });
 
-    // Si todo sale bien...
-    Alert.alert(
-      "¡Pedido Exitoso! 🍔", 
-      `Tu orden ha sido registrada. ID: ${response.orderId || 'Generado'}`,
-      [
-        {
-          text: "Aceptar",
-          onPress: () => {
-            clearCart(); 
-            navigation.replace('/(drawer)'); 
-          },
-        },
-      ]
-    );
+      // 2. Lógica de Wompi si el método es tarjeta
+      if (paymentMethod === 'card') {
+        // Petición a tu AWS API Gateway para obtener el enlace de Wompi
+        const wompiResponse = await fetch('https://mkc1x877vb.execute-api.us-east-2.amazonaws.com/orders-dev/pago-tarjeta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idOrden: userData?.email, // Pasas el ID real de la orden recién creada
+            monto: total.toFixed(2),
+            descripcion: `Orden Al Vuelo - ${groupedRestaurants.map((r:any) => r.restaurantName).join(', ')}`
+          })
+        });
 
-  } catch (error: any) {
-    Alert.alert("Error en el pedido", error.message || "No pudimos procesar tu orden. Intenta de nuevo.");
-  } finally {
-    setIsProcessing(false); // Desbloqueamos el botón
-  }
-};
+        const wompiData = await wompiResponse.json();
+        console.log("Respuesta de Wompi:", wompiData);
+        if (wompiData.urlPago) {
+          // Abrir la pasarela de pago segura encima de la app
+          const result = await WebBrowser.openBrowserAsync(wompiData.urlPago);
+          
+          // Al cerrarse el navegador (ya sea por éxito o cancelación)
+          Alert.alert(
+            "Verificando Pago", 
+            "Tu orden está registrada. Si el pago fue aprobado, la prepararemos en breve.",
+            [{ text: "Aceptar", onPress: () => { clearCart(); navigation.replace('/(drawer)'); } }]
+          );
+        } else {
+          throw new Error("No se pudo conectar con la pasarela de pagos.");
+        }
+      } else {
+        // Flujo en efectivo (como ya lo tenías)
+        Alert.alert(
+          "¡Pedido Exitoso! 🍔", 
+          `Tu orden ha sido registrada. ID: ${response.orderId || 'Generado'}`,
+          [{ text: "Aceptar", onPress: () => { clearCart(); navigation.replace('/(drawer)'); } }]
+        );
+      }
+
+    } catch (error: any) {
+      Alert.alert("Error en el pedido", error.message || "No pudimos procesar tu orden. Intenta de nuevo.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Finalizar Pedido' }} />
-      
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* 1. RESUMEN DE PRODUCTOS */}
+        {/* RESUMEN DE PRODUCTOS (Sin cambios) */}
         <Text style={styles.sectionTitle}>Resumen de la Compra</Text>
         <View style={styles.summaryBox}>
           {cart?.map((item: any, index: number) => (
@@ -191,23 +175,13 @@ const handlePlaceOrder = async () => {
             </View>
           ))}
           <View style={styles.divider} />
-          
-          <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Subtotal</Text>
-            <Text style={styles.costValue}>${subtotal.toFixed(2)}</Text>
-          </View>
-          <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Costo de Envío</Text>
-            <Text style={styles.costValue}>${MOCK_DELIVERY_COST.toFixed(2)}</Text>
-          </View>
+          <View style={styles.costRow}><Text style={styles.costLabel}>Subtotal</Text><Text style={styles.costValue}>${subtotal.toFixed(2)}</Text></View>
+          <View style={styles.costRow}><Text style={styles.costLabel}>Costo de Envío</Text><Text style={styles.costValue}>${MOCK_DELIVERY_COST.toFixed(2)}</Text></View>
           <View style={styles.divider} />
-          <View style={styles.costRow}>
-            <Text style={styles.totalLabel}>Total a Pagar</Text>
-            <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
-          </View>
+          <View style={styles.costRow}><Text style={styles.totalLabel}>Total a Pagar</Text><Text style={styles.totalValue}>${total.toFixed(2)}</Text></View>
         </View>
 
-        {/* 2. SELECTOR DE DIRECCIÓN */}
+        {/* SELECTOR DE DIRECCIÓN (Sin cambios) */}
         <Text style={styles.sectionTitle}>Dirección de Entrega</Text>
         {loadingAddresses ? (
           <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 20 }} />
@@ -218,11 +192,7 @@ const handlePlaceOrder = async () => {
               style={[styles.addressCard, selectedAddressId === addr.id && styles.selectedCard]}
               onPress={() => setSelectedAddressId(addr.id)}
             >
-              <Ionicons 
-                name={selectedAddressId === addr.id ? "radio-button-on" : "radio-button-off"} 
-                size={24} 
-                color={selectedAddressId === addr.id ? Colors.primary : Colors.lightText} 
-              />
+              <Ionicons name={selectedAddressId === addr.id ? "radio-button-on" : "radio-button-off"} size={24} color={selectedAddressId === addr.id ? Colors.primary : Colors.lightText} />
               <View style={styles.addressInfo}>
                 <Text style={styles.addressTitle}>{addr.name}</Text>
                 <Text style={styles.addressDetails}>{addr.reference}</Text>
@@ -231,7 +201,7 @@ const handlePlaceOrder = async () => {
           ))
         )}
 
-        {/* 3. SELECTOR DE PAGO */}
+        {/* SELECTOR DE PAGO (Botones mantenidos, formulario removido) */}
         <Text style={styles.sectionTitle}>Método de Pago</Text>
         <View style={styles.paymentContainer}>
           <TouchableOpacity 
@@ -247,61 +217,24 @@ const handlePlaceOrder = async () => {
             onPress={() => setPaymentMethod('card')}
           >
             <Ionicons name="card-outline" size={24} color={paymentMethod === 'card' ? '#fff' : Colors.text} />
-            <Text style={[styles.paymentBtnText, paymentMethod === 'card' && { color: '#fff' }]}>Tarjeta</Text>
+            <Text style={[styles.paymentBtnText, paymentMethod === 'card' && { color: '#fff' }]}>Tarjeta Segura</Text>
           </TouchableOpacity>
         </View>
-
-        {/* FORMULARIO DE TARJETA (Solo visible si selecciona Tarjeta) */}
-        {paymentMethod === 'card' && (
-          <View style={styles.cardForm}>
-            <TextInput 
-              style={styles.input} 
-              placeholder="Número de Tarjeta" 
-              keyboardType="numeric" 
-              maxLength={16}
-              value={cardDetails.number}
-              onChangeText={(t) => setCardDetails({...cardDetails, number: t})}
-            />
-            <TextInput 
-              style={styles.input} 
-              placeholder="Nombre en la Tarjeta" 
-              value={cardDetails.name}
-              onChangeText={(t) => setCardDetails({...cardDetails, name: t})}
-            />
-            <View style={styles.row}>
-              <TextInput 
-                style={[styles.input, { flex: 1, marginRight: 10 }]} 
-                placeholder="MM/AA" 
-                maxLength={5}
-                value={cardDetails.expiry}
-                onChangeText={(t) => setCardDetails({...cardDetails, expiry: t})}
-              />
-              <TextInput 
-                style={[styles.input, { flex: 1 }]} 
-                placeholder="CVV" 
-                keyboardType="numeric" 
-                maxLength={4}
-                secureTextEntry
-                value={cardDetails.cvv}
-                onChangeText={(t) => setCardDetails({...cardDetails, cvv: t})}
-              />
-            </View>
-          </View>
-        )}
-        
       </ScrollView>
       
-    {/* Botón Flotante */}
+      {/* BOTÓN FLOTANTE */}
       <View style={styles.footer}>
         <TouchableOpacity 
           style={[styles.confirmButton, isProcessing && { backgroundColor: '#ccc' }]} 
           onPress={handlePlaceOrder}
-          disabled={isProcessing} // Deshabilita el botón si está cargando
+          disabled={isProcessing}
         >
           {isProcessing ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.confirmButtonText}>Confirmar Pedido: ${total.toFixed(2)}</Text>
+            <Text style={styles.confirmButtonText}>
+              {paymentMethod === 'card' ? `Proceder al Pago: $${total.toFixed(2)}` : `Confirmar Pedido: $${total.toFixed(2)}`}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -309,6 +242,7 @@ const handlePlaceOrder = async () => {
   );
 };
 
+// ... ESTILOS (Mantienes los mismos que ya tenías, puedes borrar cardForm, input y row) ...
 // --- ESTILOS ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FA' },
