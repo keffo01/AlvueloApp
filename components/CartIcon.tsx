@@ -47,12 +47,12 @@ const CartIcon: React.FC = () => {
       }
     });
   };
-  
+
   const renderEstablishmentSection = (group: CartEstablishmentGroup) => (
     <View key={group.id} style={styles.section}>
       <View style={styles.groupHeader}>
         <Text style={styles.sectionTitle}>{group.name}</Text>
-        <Text style={styles.deliveryCost}>Envío: ${group.deliveryCost.toFixed(2)}</Text>
+        <Text style={styles.deliveryCost}>Envío: ${totalDeliveryCost.toFixed(2)}</Text>
       </View> 
       
       {group.items.map(item => {
@@ -138,7 +138,7 @@ const CartIcon: React.FC = () => {
         );
       })}
       
-      <Text style={styles.groupSubtotal}>Subtotal Establecimiento: ${group.subtotal.toFixed(2)}</Text>
+      <Text style={styles.groupSubtotal}>Subtotal Establecimiento: ${subtotal.toFixed(2)}</Text>
     </View>
   );
 

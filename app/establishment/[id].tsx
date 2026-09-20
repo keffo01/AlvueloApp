@@ -70,7 +70,6 @@ const EstablishmentDetailScreen: React.FC = () => {
     
   // 💡 Consumimos nuestro Hook
   const { establishment, loading, error } = useEstablishmentData(id);
-
   const [index, setIndex] = useState(0);
 
   // 💡 Mapeamos los datos dinámicos o caemos en arreglos vacíos si no existen
@@ -116,7 +115,7 @@ const products = (establishment?.products || []).map((p: any) => ({
 
   // --- Renderizado de Escenas ---
   const renderScene = SceneMap({
-    products: () => <ProductsTab products={products} />,
+    products: () => <ProductsTab products={products} deliveryCost={establishment.deliveryCost} />,
     info: () => <InfoTab establishment={establishment} />,
     reviews: () => <ReviewsTab reviews={reviews} establishmentId={id} />, 
   });

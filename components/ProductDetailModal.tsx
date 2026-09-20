@@ -67,13 +67,13 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             [group]: value,
         }));
     };
-
   const handleAddToCart = () => {
     // Protección: Si hay opciones obligatorias vacías, podrías validar aquí.
     console.log("INTENTANDO AGREGAR:", {
         productId: product.productId,
         establishmentId: establishmentId,
-        price: product.price
+        price: product.price,
+        totalDeliveryCost: deliveryCost
     });
 
     if (!establishmentId) {
@@ -84,7 +84,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         ...product, 
         productId: product.productId, 
         establishmentId: establishmentId,
-        establishmentDeliveryCost: deliveryCost,
+        totalDeliveryCost: deliveryCost,
         optionsSelected: selectedOptions,
     } as any); 
   };

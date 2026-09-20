@@ -23,7 +23,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, del
   const handleCloseModal = () => {
     setIsModalVisible(false);
   };
-
   return (
     <>
     <TouchableOpacity style={styles.cardContainer} activeOpacity={0.9} onPress={handleOpenModal}>

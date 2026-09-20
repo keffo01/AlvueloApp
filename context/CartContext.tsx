@@ -6,7 +6,7 @@ import {
   CartEstablishmentGroup,
   CartItem,
   CartTotals
-} from '../models/commons.model'; // 💡 Asegura la ruta correcta
+} from '../models/commons.model';
 
 // --- Valores Iniciales ---
 const DEFAULT_CART_CONTEXT: CartContextType = {
@@ -34,52 +34,71 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [cart, setCart] = useState<CartItem[]>([]);
   const [establishmentId, setEstablishmentId] = useState<string | null>(null);
   const [deliveryCost, setDeliveryCost] = useState(0);
-  interface ItemToAdd extends Omit<CartItem, 'id' | 'quantity'> {}
 
-  // Función de ayuda para calcular los totales y agrupar items
+  type ItemToAdd = Omit<CartItem, 'id' | 'quantity'> & { quantity?: number };
+
+  // --- Función para calcular totales y agrupar items ---
   const calculateCartTotals = (currentCart: CartItem[]): CartTotals => {
-    
-    // 1. Calcular Subtotal, Total Items y Agrupación
     const groupedMap = new Map<string, CartEstablishmentGroup>();
     let subtotal = 0;
     let totalItems = 0;
-    
+
     currentCart.forEach(item => {
-        const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
-        totalItems += item.quantity;
-        
-        // Agrupación por ID de Establecimiento
-        const establishmentId = item.establishment.id;
-        
-        if (!groupedMap.has(establishmentId)) {
-            // Inicializar grupo
-            groupedMap.set(establishmentId, {
-                ...item.establishment, // Copia id, name, deliveryCost
-                items: [],
-                subtotal: 0,
-            });
-        }
-        
-        const group = groupedMap.get(establishmentId)!;
-        group.items.push(item);
-        group.subtotal += itemTotal;
+      // 1. Convertir precios y cantidades a números seguros
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 1;
+      const itemTotal = price * quantity;
+
+      subtotal += itemTotal;
+      totalItems += quantity;
+
+      // 2. Extraer ID y Nombre del establecimiento (soporta formato anidado o plano)
+      const rawItem = item as any;
+      const estId = item.establishment?.id || rawItem.establishmentId || 'default_establishment';
+      const estName = item.establishment?.name || rawItem.establishmentName || 'Establecimiento';
+
+      // 3. Extraer costo de envío de forma segura (soporta totalDeliveryCost, deliveryCost o establishment.deliveryCost)
+      const rawDeliveryCost =
+        item.establishment?.deliveryCost ??
+        rawItem.totalDeliveryCost ??
+        rawItem.deliveryCost ??
+        0;
+
+      const groupDeliveryCost = Number(rawDeliveryCost) || 0;
+
+      // 4. Agrupación por establecimiento
+      if (!groupedMap.has(estId)) {
+        groupedMap.set(estId, {
+          ...(item.establishment || {}),
+          id: estId,
+          name: estName,
+          deliveryCost: groupDeliveryCost,
+          items: [],
+          subtotal: 0,
+        } as CartEstablishmentGroup);
+      }
+
+      const group = groupedMap.get(estId)!;
+      group.items.push(item);
+      group.subtotal += itemTotal;
     });
 
     const groupedItems = Array.from(groupedMap.values());
-    
-    // 2. Calcular Costos Totales de Envío
-    // Suma el costo de envío de CADA establecimiento único en el carrito
-    const totalDeliveryCost = groupedItems.reduce((sum, group) => sum + group.deliveryCost, 0);
 
-    // 3. Final Total
+    // 5. Sumar el costo de envío de cada establecimiento único
+    const totalDeliveryCost = groupedItems.reduce(
+      (sum, group) => sum + (Number(group.deliveryCost) || 0),
+      0
+    );
+
+    // 6. Calcular total final
     const finalTotal = subtotal + totalDeliveryCost;
 
     return {
       cart: currentCart,
-      subtotal,
-      totalDeliveryCost,
-      finalTotal,
+      subtotal: Number(subtotal.toFixed(2)),
+      totalDeliveryCost: Number(totalDeliveryCost.toFixed(2)),
+      finalTotal: Number(finalTotal.toFixed(2)),
       totalItems,
       groupedItems,
     };
@@ -87,38 +106,31 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // --- Lógica para Añadir Items ---
   const addItemToCart = (itemToAdd: ItemToAdd) => {
-    console.log("ITEM AÑADIDO", itemToAdd.name)
-    // 💡 1. Generar un ID ÚNICO BASADO EN LAS OPCIONES
-const optionsString = JSON.stringify(itemToAdd.optionsSelected);
-// El ID debe ser una combinación del producto y las opciones
-const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
+    const optionsString = JSON.stringify(itemToAdd.optionsSelected || []);
+    const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
+
     setCart(prevCart => {
-    // 2. Buscamos el ítem por el ID ÚNICO (incluyendo opciones)
-    const existingItemIndex = prevCart.findIndex(
-        item => item.id === uniqueItemId 
-    );
-    
-    // Crear el nuevo ítem, incluyendo el ID único y la cantidad inicial de 1
-    const newItem: CartItem = {
+      const existingItemIndex = prevCart.findIndex(
+        item => item.id === uniqueItemId
+      );
+
+      const newItem: CartItem = {
         ...itemToAdd,
-        id: uniqueItemId, // 💡 Usar el ID ÚNICO
-        quantity: 1,
-    };
+        id: uniqueItemId,
+        quantity: itemToAdd.quantity || 1,
+      } as CartItem;
 
-    if (existingItemIndex > -1) {
-        // 3. Si el ítem con las MISMAS OPCIONES existe, solo incrementamos
+      if (existingItemIndex > -1) {
         const newCart = [...prevCart];
-        newCart[existingItemIndex].quantity += 1;
+        newCart[existingItemIndex].quantity += (itemToAdd.quantity || 1);
         return newCart;
-    } else {
-        // 4. Si es una NUEVA COMBINACIÓN de opciones, añadimos como nuevo ítem
-        // ... (Lógica de establecimiento si el carrito está vacío) ...
+      } else {
         return [...prevCart, newItem];
-    }
-});
-
+      }
+    });
   };
-// 💡 1. FUNCIÓN PARA INCREMENTAR CANTIDAD
+
+  // --- Incrementar Cantidad ---
   const incrementQuantity = (itemId: string) => {
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
@@ -127,15 +139,14 @@ const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
 
       if (existingItemIndex > -1) {
         const newCart = [...prevCart];
-        // Simplemente incrementamos la cantidad
-        newCart[existingItemIndex].quantity += 1; 
+        newCart[existingItemIndex].quantity += 1;
         return newCart;
       }
-      return prevCart; // Si no lo encuentra, devolvemos el carrito sin cambios
+      return prevCart;
     });
   };
 
-  // 💡 2. FUNCIÓN PARA DECREMENTAR CANTIDAD
+  // --- Decrementar Cantidad ---
   const decrementQuantity = (itemId: string) => {
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
@@ -147,14 +158,10 @@ const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
         const currentQuantity = newCart[existingItemIndex].quantity;
 
         if (currentQuantity > 1) {
-          // Si la cantidad es mayor a 1, solo decrementamos
           newCart[existingItemIndex].quantity -= 1;
           return newCart;
         } else {
-          // Si la cantidad es 1, lo eliminamos del carrito (cantidad llega a 0)
           const updatedCart = newCart.filter(item => item.id !== itemId);
-          
-          // Si el carrito queda vacío, reseteamos los costos del establecimiento
           if (updatedCart.length === 0) {
             setEstablishmentId(null);
             setDeliveryCost(0);
@@ -165,33 +172,27 @@ const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
       return prevCart;
     });
   };
+
+  // --- Vaciar Carrito ---
   const clearCart = () => {
     setCart([]);
+    setEstablishmentId(null);
+    setDeliveryCost(0);
   };
 
-  // --- Lógica para Eliminar Items ---
+  // --- Eliminar Item Completamente ---
   const removeItemFromCart = (itemId: string) => {
     setCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(
-        item => item.id === itemId
-      );
-
-      if (existingItemIndex > -1) {
-        if (prevCart[existingItemIndex].quantity > 1) {
-          // Si tiene más de 1, decrementa la cantidad
-          const newCart = [...prevCart];
-          newCart[existingItemIndex].quantity -= 1;
-          return newCart;
-        } else {
-          // Si es 1, elimina el item del carrito
-          return prevCart.filter(item => item.id !== itemId);
-        }
+      const updatedCart = prevCart.filter(item => item.id !== itemId);
+      if (updatedCart.length === 0) {
+        setEstablishmentId(null);
+        setDeliveryCost(0);
       }
-      return prevCart; // No se encontró, no cambia el carrito
+      return updatedCart;
     });
   };
 
-  // 💡 useMemo asegura que los cálculos se realicen solo cuando el carrito cambie
+  // --- Memorización del valor del contexto ---
   const value = useMemo(() => {
     const totals = calculateCartTotals(cart);
     return {

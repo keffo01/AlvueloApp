@@ -9,11 +9,12 @@ import CardProduct from '../stablishment/CardProduct';
 
 interface ProductsTabProps {
   products: Product[];
+  deliveryCost: number; // 💡 Recibimos el costo de entrega del establecimiento
 }
 
-const ProductsTab: React.FC<ProductsTabProps> = ({ products }) => {
+const ProductsTab: React.FC<ProductsTabProps> = ({ products, deliveryCost }) => {
   const renderProduct = ({ item }: { item: Product }) => (
-    <CardProduct product={item} establishmentId={item.establishment.id} deliveryCost={item.establishment.deliveryCost} />
+    <CardProduct product={item} establishmentId={item.establishment.id} deliveryCost={deliveryCost} />
   );
 
   return (
