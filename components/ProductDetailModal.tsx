@@ -1,4 +1,5 @@
 // components/ProductDetailModal.tsx
+// ✍️ Actualizado por @keffoAlvuelo - Soporte seguro para botonera inferior Android (S23 Ultra)
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -10,18 +11,17 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-// 1. IMPORTAR useSafeAreaInsets
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '../constants/colors';
 import Sizes from '../constants/Sizes';
 import { useCart } from '../context/CartContext';
-import { Product } from '../models/commons.model';
 
 interface ProductDetailModalProps {
-  product: Product;
+  visible: boolean;
+  product: any; // Permitimos flexibilidad para recibir productos o combos
   onClose: () => void;
-  deliveryCost: number;
-  establishmentId: string;
+  deliveryCost?: number;
+  establishmentId?: string;
 }
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ 
@@ -33,7 +33,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const { cart, addItemToCart, incrementQuantity, decrementQuantity } = useCart();
   const [selectedOptions, setSelectedOptions] = useState<{[key: string]: string}>({});
   
-  // 2. OBTENER INSETS PARA EVITAR QUE EL BOTÓN QUEDE TAPADO
+  // 📐 @keffoAlvuelo: Obtenemos los insets seguros para evitar la barra de navegación inferior
   const insets = useSafeAreaInsets();
 
   // Inicializar opciones
@@ -42,13 +42,13 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         if (product.options) {
             Object.keys(product.options).forEach(key => {
                 const optionsList = product.options![key];
+                const firstOption = Array.isArray(optionsList) ? optionsList[0] : null;
+
                 if (
                     key.includes('Complemento') && 
-                    Array.isArray(optionsList) && 
-                    optionsList.length > 0 &&
-                    typeof optionsList[0] === 'string'
+                    firstOption
                 ) {
-                    initialSelections[key] = optionsList[0] as string; 
+                    initialSelections[key] = typeof firstOption === 'string' ? firstOption : (firstOption.S || ''); 
                 }
             });
             setSelectedOptions(initialSelections);
@@ -67,29 +67,35 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             [group]: value,
         }));
     };
-  const handleAddToCart = () => {
-    // Protección: Si hay opciones obligatorias vacías, podrías validar aquí.
-    console.log("INTENTANDO AGREGAR:", {
-        productId: product.productId,
-        establishmentId: establishmentId,
-        price: product.price,
-        totalDeliveryCost: deliveryCost
-    });
 
-    if (!establishmentId) {
+  const handleAddToCart = () => {
+    const finalEstablishmentId = establishmentId || product.establishment?.id || product.establishmentId || 'com_default';
+    const finalDeliveryCost = Number(
+      deliveryCost ?? 
+      product.establishment?.deliveryCost ?? 
+      product.totalDeliveryCost ?? 
+      1.50
+    );
+
+    if (!finalEstablishmentId) {
         alert("Error: No se ha identificado el establecimiento.");
         return;
     }
+
     addItemToCart({ 
         ...product, 
         productId: product.productId, 
-        establishmentId: establishmentId,
-        totalDeliveryCost: deliveryCost,
+        establishmentId: finalEstablishmentId,
+        totalDeliveryCost: finalDeliveryCost,
         optionsSelected: selectedOptions,
+        establishment: product.establishment || {
+          id: finalEstablishmentId,
+          name: product.establishmentName || 'Establecimiento Al Vuelo',
+          deliveryCost: finalDeliveryCost
+        }
     } as any); 
   };
 
-  // 3. LÓGICA PARA EL BOTÓN +
   const handleIncrement = () => {
       if (quantity === 0) {
           handleAddToCart();
@@ -109,55 +115,65 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <ImageBackground 
-                source={{ uri: product.imageUri }} 
+                source={{ uri: product.imageUri || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c' }} 
                 style={styles.imagePlaceholder}
                 imageStyle={styles.imageStyle}
               />
 
         <View style={styles.detailsContainer}>
           <Text style={styles.name}>{product.name}</Text>
-          <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+          <Text style={styles.price}>${Number(product.price || 0).toFixed(2)}</Text>
           <Text style={styles.description}>
             {product.description || "Descripción detallada del producto."}
           </Text>
           
-          {/* SECCIÓN DE OPCIONES: Ahora con Radio Buttons */}
+          {/* SECCIÓN DE OPCIONES */}
           <Text style={styles.optionsTitle}>Opciones Adicionales</Text>
           <View style={styles.optionsContainer}> 
-            {Object.keys(product.options || {}).filter(key => key.includes('Complemento')).map(group => (
-                <View key={group} style={styles.optionGroup}>
-                    <Text style={styles.radioGroupLabel}>{group}:</Text>
-                    <View style={styles.radioGroupContainer}>
-                        {(product.options![group] as string[]).map((option: string) => {
-                            const isSelected = selectedOptions[group] === option;
-                            return (
-                                <TouchableOpacity 
-                                    key={option} 
-                                    style={styles.radioOption}
-                                    onPress={() => handleOptionChange(group, option)}
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons 
-                                        name={isSelected ? "radio-button-on" : "radio-button-off"} 
-                                        size={22} 
-                                        color={isSelected ? Colors.primary : Colors.lightText} 
-                                    />
-                                    <Text style={[styles.radioText, isSelected && styles.radioTextSelected]}>
-                                        {option}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        })}
+            {Object.keys(product.options || {}).filter(key => key.includes('Complemento') || key.includes('Extra')).map(group => {
+                const optionsRaw = product.options![group];
+                const optionsArray = Array.isArray(optionsRaw) ? optionsRaw : [];
+
+                return (
+                    <View key={group} style={styles.optionGroup}>
+                        <Text style={styles.radioGroupLabel}>{group}:</Text>
+                        <View style={styles.radioGroupContainer}>
+                            {optionsArray.map((opt: any) => {
+                                const optionText = typeof opt === 'string' ? opt : (opt.S || JSON.stringify(opt));
+                                const isSelected = selectedOptions[group] === optionText;
+                                
+                                return (
+                                    <TouchableOpacity 
+                                        key={optionText} 
+                                        style={styles.radioOption}
+                                        onPress={() => handleOptionChange(group, optionText)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Ionicons 
+                                            name={isSelected ? "radio-button-on" : "radio-button-off"} 
+                                            size={22} 
+                                            color={isSelected ? Colors.primary : Colors.lightText} 
+                                        />
+                                        <Text style={[styles.radioText, isSelected && styles.radioTextSelected]}>
+                                            {optionText}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
                     </View>
-                </View>
-            ))}
+                );
+            })}
           </View>
 
         </View>
       </ScrollView>
       
-      {/* 4. FOOTER CORREGIDO: Padding bottom dinámico */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+      {/* 📐 FOOTER DINÁMICO: @keffoAlvuelo - Evita que la botonera de Android tape los botones */}
+      <View style={[
+        styles.footer, 
+        { paddingBottom: Math.max(insets.bottom, 16) }
+      ]}>
         
         <View style={styles.priceAndQuantityContainer}>
           <View style={styles.quantityControl}>
@@ -189,7 +205,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           onPress={handleAddToCart}
         >
           <Text style={styles.addButtonText}>
-            {quantity > 0 ? `Actualizar / Añadir más` : `Añadir al Carrito`} (${product.price.toFixed(2)})
+            {quantity > 0 ? `Actualizar / Añadir más` : `Añadir al Carrito`} (${Number(product.price || 0).toFixed(2)})
           </Text>
         </TouchableOpacity>
       </View>
@@ -216,7 +232,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scrollContent: {
-    paddingBottom: 140, 
+    paddingBottom: 160, // Espacio extra para que el contenido no quede oculto detrás del footer flotante
   },
   imagePlaceholder: {
     width: '100%',
@@ -262,7 +278,6 @@ const styles = StyleSheet.create({
   optionGroup: {
       marginBottom: 16,
   },
-  /* NUEVOS ESTILOS PARA RADIO BUTTONS */
   radioGroupLabel: {
       fontSize: 15,
       fontWeight: '600',
@@ -291,23 +306,19 @@ const styles = StyleSheet.create({
       fontWeight: '600',
       color: Colors.text,
   },
-  /* ESTILOS DEL FOOTER */
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: Colors.background,
-    padding: Sizes.padding,
+    paddingHorizontal: Sizes.padding,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#EEE',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
     elevation: 10,
   },
   priceAndQuantityContainer: {

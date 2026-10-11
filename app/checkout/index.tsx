@@ -1,8 +1,9 @@
 // app/checkout/index.tsx
+// ✍️ Actualizado por @keffoAlvuelo - Corrección de insets para el botón de pago en dispositivos con botonera inferior
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser'; // 💡 NUEVO: Importación del navegador interno
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // 📐 @keffoAlvuelo: Insets importados correctamente
 
 import { orderService } from '@/services/order.service';
 import { UserService } from '@/services/user.service';
@@ -28,13 +30,16 @@ const CheckoutScreen: React.FC = () => {
   const { userData, updateUserData } = useAuth();
   const navigation = useRouter();
   
+  // 📐 @keffoAlvuelo: Declaración del hook dentro del componente
+  const insets = useSafeAreaInsets();
+  
   // Direcciones
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Pagos (Eliminamos el estado cardDetails por seguridad)
+  // Pagos
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | null>(null);
 
   const total = useMemo(() => subtotal + MOCK_DELIVERY_COST, [subtotal]);
@@ -98,13 +103,12 @@ const CheckoutScreen: React.FC = () => {
         }))
       };
 
-      // 1. Crear la orden primero en tu Backend/AWS
       const response = await orderService.createOrder(orderPayload);
       
       const newOrderLocal = {
         orderId: response.orderId,
         createdAt: new Date().toISOString(),
-        orderStatus: paymentMethod === 'card' ? "pendiente_pago" : "inicio", // Estado condicional
+        orderStatus: paymentMethod === 'card' ? "pendiente_pago" : "inicio",
         orderData: orderPayload.orderData,
         restaurantData: orderPayload.restaurantData,
         customerData: orderPayload.customerData
@@ -113,14 +117,12 @@ const CheckoutScreen: React.FC = () => {
       const updatedOrders = userData?.orders ? [...userData.orders, newOrderLocal] : [newOrderLocal];
       updateUserData({ orders: updatedOrders });
 
-      // 2. Lógica de Wompi si el método es tarjeta
       if (paymentMethod === 'card') {
-        // Petición a tu AWS API Gateway para obtener el enlace de Wompi
         const wompiResponse = await fetch('https://mkc1x877vb.execute-api.us-east-2.amazonaws.com/orders-dev/pago-tarjeta', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            idOrden: userData?.email, // Pasas el ID real de la orden recién creada
+            idOrden: userData?.email,
             monto: total.toFixed(2),
             descripcion: `Orden Al Vuelo - ${groupedRestaurants.map((r:any) => r.restaurantName).join(', ')}`
           })
@@ -129,10 +131,7 @@ const CheckoutScreen: React.FC = () => {
         const wompiData = await wompiResponse.json();
         console.log("Respuesta de Wompi:", wompiData);
         if (wompiData.urlPago) {
-          // Abrir la pasarela de pago segura encima de la app
-          const result = await WebBrowser.openBrowserAsync(wompiData.urlPago);
-          
-          // Al cerrarse el navegador (ya sea por éxito o cancelación)
+          await WebBrowser.openBrowserAsync(wompiData.urlPago);
           Alert.alert(
             "Verificando Pago", 
             "Tu orden está registrada. Si el pago fue aprobado, la prepararemos en breve.",
@@ -142,7 +141,6 @@ const CheckoutScreen: React.FC = () => {
           throw new Error("No se pudo conectar con la pasarela de pagos.");
         }
       } else {
-        // Flujo en efectivo (como ya lo tenías)
         Alert.alert(
           "¡Pedido Exitoso! 🍔", 
           `Tu orden ha sido registrada. ID: ${response.orderId || 'Generado'}`,
@@ -162,7 +160,6 @@ const CheckoutScreen: React.FC = () => {
       <Stack.Screen options={{ title: 'Finalizar Pedido' }} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* RESUMEN DE PRODUCTOS (Sin cambios) */}
         <Text style={styles.sectionTitle}>Resumen de la Compra</Text>
         <View style={styles.summaryBox}>
           {cart?.map((item: any, index: number) => (
@@ -181,7 +178,6 @@ const CheckoutScreen: React.FC = () => {
           <View style={styles.costRow}><Text style={styles.totalLabel}>Total a Pagar</Text><Text style={styles.totalValue}>${total.toFixed(2)}</Text></View>
         </View>
 
-        {/* SELECTOR DE DIRECCIÓN (Sin cambios) */}
         <Text style={styles.sectionTitle}>Dirección de Entrega</Text>
         {loadingAddresses ? (
           <ActivityIndicator size="large" color={Colors.primary} style={{ marginVertical: 20 }} />
@@ -201,7 +197,6 @@ const CheckoutScreen: React.FC = () => {
           ))
         )}
 
-        {/* SELECTOR DE PAGO (Botones mantenidos, formulario removido) */}
         <Text style={styles.sectionTitle}>Método de Pago</Text>
         <View style={styles.paymentContainer}>
           <TouchableOpacity 
@@ -222,8 +217,11 @@ const CheckoutScreen: React.FC = () => {
         </View>
       </ScrollView>
       
-      {/* BOTÓN FLOTANTE */}
-      <View style={styles.footer}>
+      {/* 📐 FOOTER FLOTANTE CON INSETS DINÁMICOS: @keffoAlvuelo */}
+      <View style={[
+        styles.footer, 
+        { paddingBottom: Math.max(insets.bottom, 16) }
+      ]}>
         <TouchableOpacity 
           style={[styles.confirmButton, isProcessing && { backgroundColor: '#ccc' }]} 
           onPress={handlePlaceOrder}
@@ -242,14 +240,11 @@ const CheckoutScreen: React.FC = () => {
   );
 };
 
-// ... ESTILOS (Mantienes los mismos que ya tenías, puedes borrar cardForm, input y row) ...
-// --- ESTILOS ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FA' },
-  scrollContent: { padding: Sizes.padding, paddingBottom: 120 },
+  scrollContent: { padding: Sizes.padding, paddingBottom: 140 },
   sectionTitle: { fontSize: Sizes.subtitle, fontWeight: 'bold', color: Colors.text, marginTop: Sizes.padding, marginBottom: Sizes.smallPadding },
   
-  // Resumen
   summaryBox: { backgroundColor: '#fff', padding: Sizes.padding, borderRadius: Sizes.radius, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
   productRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   productInfo: { flexDirection: 'row', flex: 1 },
@@ -263,28 +258,37 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: Sizes.title, fontWeight: 'bold', color: Colors.text },
   totalValue: { fontSize: Sizes.title, fontWeight: 'bold', color: Colors.primary },
 
-  // Direcciones
   addressCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 15, borderRadius: Sizes.radius, marginBottom: 10, borderWidth: 1, borderColor: '#E0E0E0' },
-  selectedCard: { borderColor: Colors.primary, backgroundColor: '#FFF5F5' }, // Ajusta el color de fondo según tu primary
+  selectedCard: { borderColor: Colors.primary, backgroundColor: '#FFF5F5' },
   addressInfo: { marginLeft: 15, flex: 1 },
   addressTitle: { fontWeight: 'bold', fontSize: 16, color: Colors.text },
   addressDetails: { color: Colors.lightText, marginTop: 4 },
 
-  // Pagos
   paymentContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
   paymentBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', padding: 15, borderRadius: Sizes.radius, borderWidth: 1, borderColor: '#E0E0E0', marginHorizontal: 5 },
   paymentBtnActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   paymentBtnText: { marginLeft: 8, fontWeight: 'bold', color: Colors.text },
   
-  // Formulario Tarjeta
-  cardForm: { backgroundColor: '#fff', padding: 15, borderRadius: Sizes.radius, marginTop: 5 },
-  input: { backgroundColor: '#F0F0F0', padding: 12, borderRadius: 8, marginBottom: 10, fontSize: 16 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-
-  // Footer
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: Sizes.padding, borderTopWidth: 1, borderTopColor: '#E0E0E0', elevation: 10 },
-  confirmButton: { backgroundColor: Colors.primary, borderRadius: Sizes.radius, padding: Sizes.padding, alignItems: 'center' },
-  confirmButtonText: { color: '#ffffff', fontSize: Sizes.font, fontWeight: 'bold' },
+  footer: { 
+    position: 'absolute', 
+    bottom: 0, 
+    left: 0, 
+    right: 0, 
+    backgroundColor: '#fff', 
+    paddingHorizontal: Sizes.padding,
+    paddingTop: 12,
+    borderTopWidth: 1, 
+    borderTopColor: '#E0E0E0', 
+    elevation: 10 
+  },
+  confirmButton: { 
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  confirmButtonText: { color: '#ffffff', fontSize: Sizes.font, fontWeight: 'bold', textAlign: 'center' },
 });
 
 export default CheckoutScreen;

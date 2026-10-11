@@ -57,11 +57,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, establishmentId, del
         presentationStyle="pageSheet" // Estilo iOS de modal (opcional)
       >
         <ProductDetailModal 
-          product={product} 
-          onClose={handleCloseModal} 
+          product={product}
+          onClose={handleCloseModal}
           deliveryCost={deliveryCost}
-          establishmentId={establishmentId}
-        />
+          establishmentId={establishmentId} visible={false}        />
       </Modal>
    </>
   );
