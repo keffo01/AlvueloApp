@@ -1,5 +1,5 @@
 // app/checkout/index.tsx
-// ✍️ Actualizado por @keffoAlvuelo - Corrección de insets para el botón de pago en dispositivos con botonera inferior
+// ✍️ Actualizado por @keffoAlvuelo - Extracción y envío de imágenes múltiples al Checkout
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useRouter } from 'expo-router';
@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // 📐 @keffoAlvuelo: Insets importados correctamente
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { orderService } from '@/services/order.service';
 import { UserService } from '@/services/user.service';
@@ -29,8 +29,6 @@ const CheckoutScreen: React.FC = () => {
   const { cart, subtotal, clearCart } = useCart();
   const { userData, updateUserData } = useAuth();
   const navigation = useRouter();
-  
-  // 📐 @keffoAlvuelo: Declaración del hook dentro del componente
   const insets = useSafeAreaInsets();
   
   // Direcciones
@@ -69,6 +67,21 @@ const CheckoutScreen: React.FC = () => {
     try {
       setIsProcessing(true);
 
+      // 📸 1. RECOLECTAR IMÁGENES ADJUNTAS DESDE EL CARRITO (Ej. Mandaditos)
+      const allImages: any[] = [];
+      cart.forEach((item: any) => {
+        if (item.optionsSelected?.images && Array.isArray(item.optionsSelected.images)) {
+          item.optionsSelected.images.forEach((img: any) => {
+            if (img.base64) {
+              allImages.push({
+                fileName: img.fileName,
+                base64: img.base64
+              });
+            }
+          });
+        }
+      });
+
       const groupedItems = cart.reduce((acc: any, item: any) => {
         const estId = item.establishment?.id || "N/A";
         const estName = item.establishment?.name || "Comercio Desconocido";
@@ -76,7 +89,15 @@ const CheckoutScreen: React.FC = () => {
         if (!acc[estId]) {
           acc[estId] = { restaurantId: estId, restaurantName: estName, items: [] };
         }
-        acc[estId].items.push({ id: item.id, name: item.name, quantity: item.quantity, price: item.price });
+        
+        // 💡 Incluimos optionsSelected para no perder los detalles personalizados del mandadito
+        acc[estId].items.push({ 
+          id: item.id, 
+          name: item.name, 
+          quantity: item.quantity, 
+          price: item.price,
+          optionsSelected: item.optionsSelected 
+        });
         return acc;
       }, {});
 
@@ -100,7 +121,8 @@ const CheckoutScreen: React.FC = () => {
         restaurantData: groupedRestaurants.map((g: any) => ({
           id: g.restaurantId,
           name: g.restaurantName
-        }))
+        })),
+        images: allImages // 💡 Imágenes enviadas al Lambda para subirlas a S3
       };
 
       const response = await orderService.createOrder(orderPayload);
@@ -129,7 +151,6 @@ const CheckoutScreen: React.FC = () => {
         });
 
         const wompiData = await wompiResponse.json();
-        console.log("Respuesta de Wompi:", wompiData);
         if (wompiData.urlPago) {
           await WebBrowser.openBrowserAsync(wompiData.urlPago);
           Alert.alert(
@@ -217,7 +238,6 @@ const CheckoutScreen: React.FC = () => {
         </View>
       </ScrollView>
       
-      {/* 📐 FOOTER FLOTANTE CON INSETS DINÁMICOS: @keffoAlvuelo */}
       <View style={[
         styles.footer, 
         { paddingBottom: Math.max(insets.bottom, 16) }
