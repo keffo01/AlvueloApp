@@ -101,6 +101,8 @@ export interface CartItem {
   basePrice: number; 
   // Opciones seleccionadas por el usuario (ej: { Complemento1: 'Arroz', extras: ['tortillas de maiz'] })
   optionsSelected: { [key: string]: string | string[] };
+
+  imageUri?: string; // Imagen del producto para mostrar en el carrito
 }
 // Interfaz para la nueva estructura de Extras (si no la tienes en mockData)
 export interface ExtraOption {

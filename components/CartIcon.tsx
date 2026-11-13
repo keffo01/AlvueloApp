@@ -61,10 +61,14 @@ const CartIcon: React.FC = () => {
         const isExpanded = expandedItems.includes(item.id);
         const options = item.optionsSelected || {};
         const isCustomFavor = Boolean(options.isCustomFavor);
-        const attachedImages = options.images || [];
+        const attachedImages = Array.isArray(options.images)
+          ? options.images
+          : typeof options.images === 'string' && options.images
+            ? [options.images]
+            : [];
 
         // Determinar imagen principal para miniatura
-        const primaryImage = item.imageUri || (attachedImages.length > 0 ? attachedImages[0].uri : null);
+        const primaryImage = item.imageUri || (attachedImages.length > 0 ? attachedImages[0] : null);
 
         return (
           <View key={item.id} style={styles.sectionItemContainer}>
@@ -153,7 +157,7 @@ const CartIcon: React.FC = () => {
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailsScroll}>
                           {attachedImages.map((img: any, idx: number) => (
                             <View key={idx} style={styles.previewThumbWrapper}>
-                              <Image source={{ uri: img.uri }} style={styles.previewThumbImage} />
+                              <Image source={{ uri: typeof img === 'string' ? img : img.uri }} style={styles.previewThumbImage} />
                             </View>
                           ))}
                         </ScrollView>
