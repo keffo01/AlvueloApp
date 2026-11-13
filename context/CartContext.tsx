@@ -1,4 +1,5 @@
 // context/CartContext.tsx
+// ✍️ Optimizado para Al Vuelo - IDs limpios para mandaditos y retención temporal de imágenes para S3
 
 import React, { createContext, ReactNode, useContext, useMemo, useState } from 'react';
 import {
@@ -32,8 +33,6 @@ export const useCart = () => useContext(CartContext);
 // --- Componente Proveedor ---
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [establishmentId, setEstablishmentId] = useState<string | null>(null);
-  const [deliveryCost, setDeliveryCost] = useState(0);
 
   type ItemToAdd = Omit<CartItem, 'id' | 'quantity'> & { quantity?: number };
 
@@ -44,7 +43,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let totalItems = 0;
 
     currentCart.forEach(item => {
-      // 1. Convertir precios y cantidades a números seguros
       const price = Number(item.price) || 0;
       const quantity = Number(item.quantity) || 1;
       const itemTotal = price * quantity;
@@ -52,12 +50,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       subtotal += itemTotal;
       totalItems += quantity;
 
-      // 2. Extraer ID y Nombre del establecimiento (soporta formato anidado o plano)
       const rawItem = item as any;
       const estId = item.establishment?.id || rawItem.establishmentId || 'default_establishment';
       const estName = item.establishment?.name || rawItem.establishmentName || 'Establecimiento';
 
-      // 3. Extraer costo de envío de forma segura (soporta totalDeliveryCost, deliveryCost o establishment.deliveryCost)
       const rawDeliveryCost =
         item.establishment?.deliveryCost ??
         rawItem.totalDeliveryCost ??
@@ -66,7 +62,6 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const groupDeliveryCost = Number(rawDeliveryCost) || 0;
 
-      // 4. Agrupación por establecimiento
       if (!groupedMap.has(estId)) {
         groupedMap.set(estId, {
           ...(item.establishment || {}),
@@ -85,13 +80,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const groupedItems = Array.from(groupedMap.values());
 
-    // 5. Sumar el costo de envío de cada establecimiento único
     const totalDeliveryCost = groupedItems.reduce(
       (sum, group) => sum + (Number(group.deliveryCost) || 0),
       0
     );
 
-    // 6. Calcular total final
     const finalTotal = subtotal + totalDeliveryCost;
 
     return {
@@ -106,8 +99,17 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // --- Lógica para Añadir Items ---
   const addItemToCart = (itemToAdd: ItemToAdd) => {
-    const optionsString = JSON.stringify(itemToAdd.optionsSelected || []);
-    const uniqueItemId = `${itemToAdd.productId}-${optionsString}`;
+    const rawOptions = (itemToAdd.optionsSelected || {}) as any;
+    const isCustomFavor = Boolean(rawOptions.isCustomFavor);
+
+    // Para productos normales filtramos opciones de comparación, pero para mandaditos mantenemos todo limpio
+    const { images, ...optionsWithoutImages } = rawOptions;
+
+    // 💡 SOLUCIÓN: Si es mandadito personalizado, usamos únicamente el productId limpio como ID. 
+    // Evita que el JSON con descripciones ensucie el identificador del carrito.
+    const uniqueItemId = isCustomFavor
+      ? itemToAdd.productId
+      : `${itemToAdd.productId}-${JSON.stringify(optionsWithoutImages)}`;
 
     setCart(prevCart => {
       const existingItemIndex = prevCart.findIndex(
@@ -118,6 +120,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...itemToAdd,
         id: uniqueItemId,
         quantity: itemToAdd.quantity || 1,
+        optionsSelected: rawOptions, // Mantiene las imágenes temporalmente para que el Checkout las envíe a S3
       } as CartItem;
 
       if (existingItemIndex > -1) {
@@ -161,12 +164,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           newCart[existingItemIndex].quantity -= 1;
           return newCart;
         } else {
-          const updatedCart = newCart.filter(item => item.id !== itemId);
-          if (updatedCart.length === 0) {
-            setEstablishmentId(null);
-            setDeliveryCost(0);
-          }
-          return updatedCart;
+          return newCart.filter(item => item.id !== itemId);
         }
       }
       return prevCart;
@@ -176,20 +174,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // --- Vaciar Carrito ---
   const clearCart = () => {
     setCart([]);
-    setEstablishmentId(null);
-    setDeliveryCost(0);
   };
 
   // --- Eliminar Item Completamente ---
   const removeItemFromCart = (itemId: string) => {
-    setCart(prevCart => {
-      const updatedCart = prevCart.filter(item => item.id !== itemId);
-      if (updatedCart.length === 0) {
-        setEstablishmentId(null);
-        setDeliveryCost(0);
-      }
-      return updatedCart;
-    });
+    setCart(prevCart => prevCart.filter(item => item.id !== itemId));
   };
 
   // --- Memorización del valor del contexto ---

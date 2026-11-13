@@ -1,8 +1,8 @@
 // components/ProductDetailModal.tsx
-// ✍️ Actualizado por @keffoAlvuelo - Soporte seguro para botonera inferior Android (S23 Ultra)
+// ✍️ Actualizado por @keffoAlvuelo - Inyección correcta del nombre y ID del establecimiento para cualquier comercio
 
 import Ionicons from '@expo/vector-icons/Ionicons';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ImageBackground,
   ScrollView,
@@ -22,13 +22,15 @@ interface ProductDetailModalProps {
   onClose: () => void;
   deliveryCost?: number;
   establishmentId?: string;
+  establishmentName?: string; // 💡 Agregado para soportar nombre explícito desde props
 }
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ 
     product, 
     onClose, 
     deliveryCost,
-    establishmentId
+    establishmentId,
+    establishmentName
 }) => {
   const { cart, addItemToCart, incrementQuantity, decrementQuantity } = useCart();
   const [selectedOptions, setSelectedOptions] = useState<{[key: string]: string}>({});
@@ -55,10 +57,8 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         }
     }, [product.options]);
 
-  const cartItem = useMemo(() => {
-    return cart.find(item => item.productId === product.productId);
-  }, [cart, product.productId]);
-  
+  // Buscar si el producto ya está en el carrito
+  const cartItem = cart.find(item => item.productId === product.productId);
   const quantity = cartItem?.quantity || 0;
 
   const handleOptionChange = (group: string, value: string) => {
@@ -69,7 +69,31 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     };
 
   const handleAddToCart = () => {
-    const finalEstablishmentId = establishmentId || product.establishment?.id || product.establishmentId || 'com_default';
+    // 💡 1. Resolver ID del establecimiento de forma robusta
+    const finalEstablishmentId = 
+      establishmentId || 
+      product.establishment?.id || 
+      product.establishmentId || 
+      'com_default';
+
+    // 💡 2. Resolver Nombre del establecimiento de forma robusta (Evita el genérico 'Establecimiento')
+    let finalEstablishmentName = 
+      establishmentName || 
+      product.establishment?.name || 
+      product.establishmentName || 
+      product.nameEstablishment;
+
+    if (!finalEstablishmentName || finalEstablishmentName === 'Establecimiento' || finalEstablishmentName === 'Comercio Desconocido') {
+      if (finalEstablishmentId === 'com_r8f2e9b1') {
+        finalEstablishmentName = 'Comedor Central';
+      } else if (finalEstablishmentId === 'servicio_personalizado') {
+        finalEstablishmentName = 'Mandados Al Vuelo';
+      } else {
+        finalEstablishmentName = 'Comercio Local';
+      }
+    }
+
+    // 💡 3. Resolver costo de envío
     const finalDeliveryCost = Number(
       deliveryCost ?? 
       product.establishment?.deliveryCost ?? 
@@ -82,15 +106,16 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         return;
     }
 
+    // 🛒 Añadir al carrito con la estructura limpia y el establecimiento bien definido
     addItemToCart({ 
         ...product, 
         productId: product.productId, 
         establishmentId: finalEstablishmentId,
         totalDeliveryCost: finalDeliveryCost,
         optionsSelected: selectedOptions,
-        establishment: product.establishment || {
+        establishment: {
           id: finalEstablishmentId,
-          name: product.establishmentName || 'Establecimiento Al Vuelo',
+          name: finalEstablishmentName,
           deliveryCost: finalDeliveryCost
         }
     } as any); 
@@ -115,10 +140,10 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <ImageBackground 
-                source={{ uri: product.imageUri || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c' }} 
-                style={styles.imagePlaceholder}
-                imageStyle={styles.imageStyle}
-              />
+            source={{ uri: product.imageUri || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c' }} 
+            style={styles.imagePlaceholder}
+            imageStyle={styles.imageStyle}
+          />
 
         <View style={styles.detailsContainer}>
           <Text style={styles.name}>{product.name}</Text>
@@ -232,7 +257,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   scrollContent: {
-    paddingBottom: 160, // Espacio extra para que el contenido no quede oculto detrás del footer flotante
+    paddingBottom: 160,
   },
   imagePlaceholder: {
     width: '100%',
