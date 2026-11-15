@@ -1,5 +1,5 @@
 // components/CartIcon.tsx
-// ✍️ Actualizado por @keffoAlvuelo - Carrito rediseñado con soporte para imágenes, miniaturas y diseño moderno
+// ✍️ Actualizado por @keffoAlvuelo - Carrito con blindaje de URI en imágenes para evitar errores de tipo Map to String
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, { useState } from 'react';
@@ -61,14 +61,20 @@ const CartIcon: React.FC = () => {
         const isExpanded = expandedItems.includes(item.id);
         const options = item.optionsSelected || {};
         const isCustomFavor = Boolean(options.isCustomFavor);
-        const attachedImages = Array.isArray(options.images)
-          ? options.images
-          : typeof options.images === 'string' && options.images
-            ? [options.images]
-            : [];
+        const attachedImages = Array.isArray(options.images) ? options.images : [];
 
-        // Determinar imagen principal para miniatura
-        const primaryImage = item.imageUri || (attachedImages.length > 0 ? attachedImages[0] : null);
+        // 💡 Blindaje estricto: Extraemos únicamente el string `uri` (evita pasar el objeto completo al componente Image)
+        let primaryImageUri = null;
+        if (typeof item.imageUri === 'string' && item.imageUri.trim() !== '') {
+          primaryImageUri = item.imageUri;
+        } else if (attachedImages.length > 0) {
+          const firstImg = attachedImages[0];
+          if (typeof firstImg === 'string') {
+            primaryImageUri = firstImg;
+          } else if (firstImg && typeof firstImg.uri === 'string') {
+            primaryImageUri = firstImg.uri;
+          }
+        }
 
         return (
           <View key={item.id} style={styles.sectionItemContainer}>
@@ -76,10 +82,10 @@ const CartIcon: React.FC = () => {
             {/* 1. FILA PRINCIPAL DEL ÍTEM */}
             <View style={styles.itemRow}>
               
-              {/* MINIATURA DE IMAGEN */}
+              {/* MINIATURA DE IMAGEN SEGURO */}
               <View style={styles.itemImageContainer}>
-                {primaryImage ? (
-                  <Image source={{ uri: primaryImage }} style={styles.itemThumbnail} />
+                {primaryImageUri ? (
+                  <Image source={{ uri: primaryImageUri }} style={styles.itemThumbnail} />
                 ) : (
                   <View style={styles.placeholderThumbnail}>
                     <Ionicons name={isCustomFavor ? "bicycle-outline" : "fast-food-outline"} size={18} color={Colors.primary} />
@@ -150,22 +156,27 @@ const CartIcon: React.FC = () => {
                       </View>
                     ) : null}
 
-                    {/* GALERÍA DE FOTOS ADJUNTAS */}
+                    {/* GALERÍA DE FOTOS ADJUNTAS SEGURO */}
                     {attachedImages.length > 0 && (
                       <View style={styles.imagesPreviewContainer}>
                         <Text style={styles.imagesPreviewTitle}>Fotos de referencia:</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailsScroll}>
-                          {attachedImages.map((img: any, idx: number) => (
-                            <View key={idx} style={styles.previewThumbWrapper}>
-                              <Image source={{ uri: typeof img === 'string' ? img : img.uri }} style={styles.previewThumbImage} />
-                            </View>
-                          ))}
+                          {attachedImages.map((img: any, idx: number) => {
+                            const thumbUri = typeof img === 'string' ? img : img?.uri;
+                            if (!thumbUri) return null;
+
+                            return (
+                              <View key={idx} style={styles.previewThumbWrapper}>
+                                <Image source={{ uri: thumbUri }} style={styles.previewThumbImage} />
+                              </View>
+                            );
+                          })}
                         </ScrollView>
                       </View>
                     )}
                   </View>
                 ) : (
-                  // DISEÑO PARA OPCIONES DE PRODUCTOS NORMALES (COMOS/COMPLEMENTOS)
+                  // DISEÑO PARA OPCIONES DE PRODUCTOS NORMALES
                   Object.entries(options).map(([groupName, optionValue]) => {
                     const displayGroup = String(groupName).trim();
                     const displayValue = String(optionValue).trim();

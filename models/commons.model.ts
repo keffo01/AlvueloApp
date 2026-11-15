@@ -33,6 +33,9 @@ export interface Product {
   imageUri: string; // URL de la imagen del producto
   category: string; // Ejemplo: 'Combo', 'Bebida', etc.
   establishment : EstablishmentReference;
+  availableFrom?: string; // Hora de inicio de disponibilidad (ej: '6:00 AM')
+  availableUntil?: string; // Hora de fin de disponibilidad (ej: '9:30 PM')
+  // 💡 NUEVO CAMPO para opciones y extras
  // 💡 Nueva estructura de opciones
   options?: {
         // Esto le dice a TypeScript: cualquier clave de tipo string (ej. 'Complemento1')
