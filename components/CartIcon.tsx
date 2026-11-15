@@ -32,6 +32,8 @@ const CartIcon: React.FC = () => {
     finalTotal, 
     groupedItems,
     addItemToCart,
+    incrementQuantity,
+    decrementQuantity,
     removeItemFromCart
   } = useCart();
 
@@ -93,24 +95,26 @@ const CartIcon: React.FC = () => {
                 )}
               </View>
 
-              {/* CONTROLES DE CANTIDAD */}
+             {/* CONTROLES DE CANTIDAD */}
               <View style={styles.quantityControls}>
                 <TouchableOpacity 
                   style={styles.quantityButton}
-                  onPress={() => removeItemFromCart(item.id)}>
+                  onPress={() => decrementQuantity(item.id)}>
                   <Ionicons 
                     name={item.quantity === 1 ? "trash-outline" : "remove"} 
                     size={14} 
                     color={item.quantity === 1 ? Colors.error : Colors.text} 
                   />
                 </TouchableOpacity>
+
                 <Text style={styles.itemQuantity}>{item.quantity}</Text>
+
                 <TouchableOpacity 
                   style={styles.quantityButton}
-                  onPress={() => addItemToCart(item)}>
+                  onPress={() => incrementQuantity(item.id)}>
                   <Ionicons name="add" size={14} color={Colors.text} /> 
                 </TouchableOpacity>
-              </View>    
+              </View> 
 
               {/* Nombre y Toggle de Detalles */}
               <TouchableOpacity 

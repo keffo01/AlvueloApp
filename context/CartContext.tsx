@@ -136,38 +136,29 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // --- Incrementar Cantidad ---
   const incrementQuantity = (itemId: string) => {
     setCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(
-        item => item.id === itemId
-      );
-
-      if (existingItemIndex > -1) {
-        const newCart = [...prevCart];
-        newCart[existingItemIndex].quantity += 1;
-        return newCart;
-      }
-      return prevCart;
+      return prevCart.map(item => {
+        if (item.id === itemId) {
+          return { ...item, quantity: item.quantity + 1 };
+        }
+        return item;
+      });
     });
   };
 
-  // --- Decrementar Cantidad ---
-  const decrementQuantity = (itemId: string) => {
+// --- Decrementar Cantidad ---
+ const decrementQuantity = (itemId: string) => {
     setCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(
-        item => item.id === itemId
-      );
-
-      if (existingItemIndex > -1) {
-        const newCart = [...prevCart];
-        const currentQuantity = newCart[existingItemIndex].quantity;
-
-        if (currentQuantity > 1) {
-          newCart[existingItemIndex].quantity -= 1;
-          return newCart;
-        } else {
-          return newCart.filter(item => item.id !== itemId);
-        }
-      }
-      return prevCart;
+      return prevCart
+        .map(item => {
+          if (item.id === itemId) {
+            if (item.quantity > 1) {
+              return { ...item, quantity: item.quantity - 1 };
+            }
+            return { ...item, quantity: 0 }; // Marca para eliminar si llega a 0
+          }
+          return item;
+        })
+        .filter(item => item.quantity > 0);
     });
   };
 
@@ -177,9 +168,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // --- Eliminar Item Completamente ---
-  const removeItemFromCart = (itemId: string) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== itemId));
-  };
+ const removeItemFromCart = (itemId: string) => {
+  setCart(prevCart => prevCart.filter(item => item.id !== itemId && item.productId !== itemId));
+};
 
   // --- Memorización del valor del contexto ---
   const value = useMemo(() => {

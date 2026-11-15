@@ -67,7 +67,6 @@ const EstablishmentDetailScreen: React.FC = () => {
     
   const { establishment, loading, error } = useEstablishmentData(id);
   const [index, setIndex] = useState(0);
-  console.log('EstablishmentDetailScreen rendered with id:', id, 'and establishment:', establishment);
 
   const timeToMinutes = (timeStr: string) => {
     if (!timeStr) return 0;
